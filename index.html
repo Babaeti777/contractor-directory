@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1e3a5f">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<title>1 Oak Builders — Contractor Directory</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<style>
+:root{--bg:#f5f6f8;--surface:#fff;--border:#e0e3e8;--text:#1a1d23;--muted:#6b7280;--accent:#1e3a5f;--accent2:#2563eb;--accent-light:#e8f0fe;--green:#059669;--yellow:#d97706;--red:#dc2626;--star:#f59e0b;--radius:10px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);-webkit-tap-highlight-color:transparent}
+
+/* ── Layout ── */
+.app{min-height:100vh;display:flex;flex-direction:column}
+.header{background:var(--accent);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
+.header h1{font-size:17px;font-weight:700;flex:1}
+.header-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.header-btn:active{background:rgba(255,255,255,.25)}
+.header-btn svg{width:20px;height:20px}
+
+.body-wrap{flex:1;padding:12px;max-width:900px;margin:0 auto;width:100%}
+
+/* ── Search ── */
+.search-bar{position:relative;margin-bottom:12px}
+.search-bar input{width:100%;padding:10px 12px 10px 38px;border:1px solid var(--border);border-radius:var(--radius);font-size:15px;background:var(--surface);outline:none}
+.search-bar input:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.search-bar svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted)}
+
+/* ── Filters ── */
+.filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.filter-row::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .15s}
+.chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ── Stats ── */
+.stats{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none}
+.stats::-webkit-scrollbar{display:none}
+.stat{flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;min-width:100px}
+.stat-n{font-size:22px;font-weight:700;color:var(--accent)}
+.stat-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+
+/* ── Cards ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:8px;cursor:pointer;transition:box-shadow .15s}
+.card:active{box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.card-name{font-size:15px;font-weight:600;line-height:1.3}
+.card-industry{font-size:11px;padding:2px 8px;border-radius:4px;background:#f0f1f3;color:var(--muted);font-weight:500;white-space:nowrap;flex-shrink:0}
+.card-detail{font-size:13px;color:var(--muted);margin-top:4px;display:flex;align-items:center;gap:6px}
+.card-detail svg{width:14px;height:14px;flex-shrink:0}
+.card-services{font-size:12px;color:var(--muted);margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.card-tags{display:flex;gap:4px;flex-wrap:wrap}
+.tag{font-size:10px;padding:2px 6px;border-radius:3px;background:#e8ecf0;color:var(--muted)}
+.stars{display:flex;gap:1px}
+.star-icon{width:16px;height:16px;color:#d1d5db;cursor:pointer}
+.star-icon.filled{color:var(--star)}
+
+/* ── Photo thumbnail in card ── */
+.card-photo{width:48px;height:48px;border-radius:6px;object-fit:cover;flex-shrink:0;background:#e8ecf0;margin-left:8px}
+
+/* ── FAB ── */
+.fab{position:fixed;bottom:24px;right:16px;width:56px;height:56px;border-radius:28px;background:var(--accent2);color:#fff;border:none;box-shadow:0 4px 16px rgba(37,99,235,.35);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:40;transition:transform .15s}
+.fab:active{transform:scale(.92)}
+.fab svg{width:26px;height:26px}
+
+/* ── Bottom Sheet / Modal ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);border-radius:16px 16px 0 0;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;animation:slideUp .25s ease-out}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:36px;height:4px;border-radius:2px;background:#d1d5db;margin:8px auto 4px}
+.sheet-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 4px}
+.sheet-header h2{font-size:17px;font-weight:700}
+.sheet-close{width:32px;height:32px;border-radius:8px;border:none;background:#f1f3f5;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--muted)}
+.sheet-body{padding:8px 16px 24px}
+
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px}
+.field input,.field textarea,.field select{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:15px;font-family:inherit;outline:none;-webkit-appearance:none}
+.field input:focus,.field textarea:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.field textarea{resize:vertical;min-height:60px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.btn{padding:12px 20px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:all .15s;width:100%}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent2);color:#fff}
+.btn-secondary{background:#f1f3f5;color:var(--text)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-row{display:flex;gap:8px;margin-top:12px}
+
+/* ── Photo upload area ── */
+.photo-area{border:2px dashed var(--border);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:border-color .15s;margin-bottom:12px}
+.photo-area:hover,.photo-area.active{border-color:var(--accent2)}
+.photo-area svg{width:32px;height:32px;color:var(--muted);margin-bottom:6px}
+.photo-area p{font-size:13px;color:var(--muted)}
+.photo-area .hint{font-size:11px;color:#b0b5be;margin-top:2px}
+.photo-preview{width:100%;max-height:200px;object-fit:contain;border-radius:8px;margin-top:8px}
+
+/* ── Detail view ── */
+.detail-photo{width:100%;max-height:220px;object-fit:contain;border-radius:8px;margin-bottom:12px;background:#f0f1f3}
+.detail-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #f0f1f3}
+.detail-row svg{width:18px;height:18px;color:var(--muted);flex-shrink:0;margin-top:1px}
+.detail-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;font-weight:600}
+.detail-value{font-size:14px;margin-top:1px}
+.detail-value a{color:var(--accent2);text-decoration:none}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1a1d23;color:#fff;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:500;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* ── Empty state ── */
+.empty{text-align:center;padding:48px 20px;color:var(--muted)}
+.empty h3{font-size:16px;color:var(--text);margin-bottom:4px}
+.empty svg{width:48px;height:48px;color:#d1d5db;margin-bottom:12px}
+
+/* ── Export menu ── */
+.menu-overlay{position:fixed;inset:0;z-index:90}
+.menu{position:absolute;top:48px;right:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.14);min-width:200px;z-index:91;overflow:hidden}
+.menu-item{padding:12px 16px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--text)}
+.menu-item:active{background:#f6f7f9}
+.menu-divider{height:1px;background:var(--border)}
+
+/* ── Desktop tweaks ── */
+@media(min-width:640px){
+  .body-wrap{padding:20px}
+  .card{padding:16px}
+  .card-name{font-size:16px}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useMemo,useCallback,useRef} = React;
+
+// ═══════════════ IndexedDB HELPERS ═══════════════
+const DB_NAME='contractor_dir';
+const DB_VER=2;
+function openDB(){
+  return new Promise((ok,fail)=>{
+    const req=indexedDB.open(DB_NAME,DB_VER);
+    req.onupgradeneeded=e=>{
+      const db=e.target.result;
+      if(!db.objectStoreNames.contains('companies'))db.createObjectStore('companies',{keyPath:'id',autoIncrement:true});
+      if(!db.objectStoreNames.contains('photos'))db.createObjectStore('photos',{keyPath:'companyId'});
+    };
+    req.onsuccess=()=>ok(req.result);
+    req.onerror=()=>fail(req.error);
+  });
+}
+async function dbGetAll(store){const db=await openDB();return new Promise((ok,fail)=>{const tx=db.transaction(store,'readonly');const s=tx.objectStore(store);const r=s.getAll();r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error)})}
+async function dbPut(store,val){const db=await openDB();return new Promise((ok,fail)=>{const tx=db.transaction(store,'readwrite');const s=tx.objectStore(store);const r=s.put(val);r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error)})}
+async function dbDelete(store,key){const db=await openDB();return new Promise((ok,fail)=>{const tx=db.transaction(store,'readwrite');const s=tx.objectStore(store);const r=s.delete(key);r.onsuccess=()=>ok();r.onerror=()=>fail(r.error)})}
+
+// ═══════════════ SEED DATA ═══════════════
+const SEED=[
+  {name:"ABC Supply Co. Inc.",contact:"",phone:"1-800-696-3001",email:"",website:"www.abcsupply.com",address:"Beloit, WI (HQ); 1000+ locations",services:"Wholesale distributor of roofing, siding, windows, exterior/interior building products",industry:"Building Supply",rating:0,notes:"",tags:["Roofing","Siding","Windows"]},
+  {name:"ProClean Air Duct Cleaning & Mold",contact:"",phone:"703-682-8007",email:"",website:"www.procleanairductcleaning.com",address:"Sterling, VA 20164",services:"Air duct cleaning, mold remediation, duct sealing, dryer vent cleaning",industry:"HVAC / Cleaning",rating:0,notes:"MD: 301-288-5707",tags:["Duct Cleaning","Mold"]},
+  {name:"Capital Masonry Services Ltd",contact:"",phone:"703-862-2593",email:"",website:"",address:"Woodbridge, VA",services:"Residential & commercial masonry; brick, flagstone, concrete, retaining walls",industry:"Masonry",rating:0,notes:"",tags:["Brick","Stone","Concrete"]},
+  {name:"Mr. Doors Inc.",contact:"",phone:"703-721-3333",email:"",website:"www.MrDoorsInc.com",address:"7200 Telegraph Square Dr, Lorton, VA 22079",services:"Garage door sales, installation, repair, maintenance; since 1996",industry:"Garage Doors",rating:0,notes:"",tags:["Garage Doors"]},
+  {name:"Nova Specialty Contracting (NSC)",contact:"",phone:"703-689-1942",email:"info@novaspecialtycontracting.com",website:"novaspecialtycontracting.com",address:"Manassas, VA 20109",services:"Roofing, siding, shutters, gutters, doors, leak repairs; GAF Certified",industry:"Roofing / Siding",rating:0,notes:"Storm specialist",tags:["Roofing","Siding","Gutters"]},
+  {name:"Benfield Electric",contact:"",phone:"703-361-3383",email:"",website:"benfieldelectricinc.com",address:"Manassas, VA 20109",services:"Residential & commercial electrical; solar, generators; since 1968",industry:"Electrical",rating:0,notes:"",tags:["Electrical","Solar"]},
+  {name:"MC Mark Construction LLC",contact:"",phone:"571-438-8228",email:"markconstruction35@yahoo.com",website:"",address:"Fairfax, VA",services:"Remodeling, painting, bathroom, kitchen, basement, plumbing, electrical",industry:"General Contractor",rating:0,notes:"Licensed, Bonded & Insured",tags:["Remodeling","Painting"]},
+  {name:"VarcoMac Electrical",contact:"",phone:"301-317-7900",email:"",website:"www.varcomac.com",address:"Odenton, MD 21113",services:"Electrical construction, building automation, fire alarm",industry:"Electrical",rating:0,notes:"",tags:["Electrical","Fire Alarm"]},
+  {name:"Drainage & Erosion Solutions",contact:"",phone:"703-534-1949",email:"",website:"www.drainageanderosion.com",address:"Falls Church, VA 22042",services:"French drains, surface erosion, stream stabilization, retaining walls",industry:"Drainage",rating:0,notes:"",tags:["Drainage","French Drains"]},
+  {name:"Fazio Mechanical",contact:"",phone:"412-782-6338",email:"",website:"FazioMechanical.com",address:"PA, MD, OH, WV, VA",services:"Commercial & industrial refrigeration, HVAC, plumbing; since 1988",industry:"HVAC / Plumbing",rating:0,notes:"",tags:["Refrigeration","HVAC"]},
+  {name:"Temporary Wall Systems (TWS)",contact:"Dan Schlaff (Owner)",phone:"202-664-5155",email:"dan.schlaff@tempwallsystems.com",website:"tempwallsystems.com",address:"Washington, DC 20010",services:"Rentable containment wall solutions for construction & renovation",industry:"Containment",rating:0,notes:"Cell: 240-858-0311",tags:["Containment","Walls"]},
+  {name:"Zelari Services LLC",contact:"",phone:"703-221-2723",email:"",website:"www.zelariservices.com",address:"Triangle, VA 22172",services:"HVAC installation & repair; general contracting; apartment make-ready",industry:"HVAC / Construction",rating:0,notes:"",tags:["HVAC","Construction"]},
+  {name:"Desert Dry Waterproofing",contact:"",phone:"1-800-238-8888",email:"",website:"desertdry.com",address:"Lorton, VA",services:"Foundation crack repair, basement waterproofing, drain tiles",industry:"Waterproofing",rating:0,notes:"",tags:["Waterproofing","Foundation"]},
+  {name:"Capitol Chimney Service LLC",contact:"",phone:"301-962-0120",email:"askthedesk@capitolchimneyservice.com",website:"CapitolChimneyService.com",address:"Silver Spring, MD 20904",services:"Chimney cleaning, inspections, masonry, fireplace installations; since 2001",industry:"Chimney Service",rating:0,notes:"Also: 410-962-5551",tags:["Chimney","Fireplace"]},
+  {name:"Contemporary Electrical (CES)",contact:"",phone:"703-255-9226",email:"",website:"cont-elec.com",address:"Vienna, VA",services:"Commercial electrical, lighting control, preventative maintenance; since 1989",industry:"Electrical",rating:0,notes:"",tags:["Electrical","Commercial"]},
+  {name:"PP Installers",contact:"",phone:"443-422-4472",email:"",website:"ppinstallers.com",address:"Maryland",services:"Glass wall partition, furniture installation, warehouse storage",industry:"Installation",rating:0,notes:"",tags:["Glass","Furniture"]},
+  {name:"Commercial Restorers LLC",contact:"",phone:"301-560-6414",email:"",website:"CommercialRestorers.com",address:"Rockville, MD 20850",services:"Clean, paint, repair, restoration, refinishing, carpet, remodeling",industry:"Restoration",rating:0,notes:"",tags:["Restoration","Painting"]},
+  {name:"Z. Isaac Painting",contact:"",phone:"302-331-8157",email:"",website:"",address:"Delaware",services:"Painting contractor",industry:"Painting",rating:0,notes:"",tags:["Painting"]},
+  {name:"Mona Electric Group / ArchKey",contact:"",phone:"800-GET-MONA",email:"",website:"www.GetMona.com",address:"Clinton, MD 20735",services:"Electrical construction, fire alarm, security, technology; since 1966",industry:"Electrical",rating:0,notes:"",tags:["Electrical","Security"]},
+  {name:"Spartan Electric Company",contact:"",phone:"301-831-8300",email:"",website:"www.spartan-electric.com",address:"Ijamsville, MD 21754",services:"Residential & commercial electrical; VA, MD, WV, DC, PA; since 1964",industry:"Electrical",rating:0,notes:"WV: 681-260-2582",tags:["Electrical"]},
+  {name:"Eastern Fire Protection",contact:"",phone:"301-261-0240",email:"",website:"www.efp669.com",address:"Crofton, MD 21114",services:"Fire sprinkler, fire alarm, power; installation, inspections, repair",industry:"Fire Protection",rating:0,notes:"",tags:["Fire Sprinkler","Fire Alarm"]},
+  {name:"Mack Hauling LLC",contact:"",phone:"703-717-3015",email:"",website:"www.mackhauling.com",address:"Falls Church, VA",services:"Junk removal, construction debris, furniture donations, estate cleanouts",industry:"Hauling",rating:0,notes:"",tags:["Hauling","Junk Removal"]},
+  {name:"WGM Masonry Contractors",contact:"",phone:"301-389-1830",email:"wgmconst@yahoo.com",website:"",address:"Sandy Spring, MD",services:"Brick, block, concrete, stucco, pavers, stone",industry:"Masonry",rating:0,notes:"",tags:["Brick","Block","Stone"]},
+  {name:"Specified Electrical Systems",contact:"",phone:"",email:"",website:"specifiedelectric.com",address:"Upper Marlboro, MD",services:"Commercial & institutional electrical; lighting, fire alarm, automation",industry:"Electrical",rating:0,notes:"",tags:["Electrical","Institutional"]},
+  {name:"Mogoo Home Improvements",contact:"",phone:"301-808-3683",email:"",website:"",address:"Capitol Heights, MD",services:"Brickwork, driveways, patios, waterproofing; DSLBD Certified",industry:"Masonry",rating:0,notes:"",tags:["Brick","Driveways","Patios"]},
+  {name:"Economy Tree Service Inc.",contact:"",phone:"1-888-TREE-MAN",email:"",website:"www.economytreeserviceinc.co",address:"Wye Mills, MD",services:"Tree removal, stump grinding, trimming, lot clearing, crane service",industry:"Tree Service",rating:0,notes:"Also: 410-827-5198",tags:["Tree Removal"]},
+  {name:"Accurate Asphalt LLC",contact:"",phone:"410-697-3167",email:"",website:"",address:"Maryland",services:"Paving and seal coating; residential & commercial; 4 generations",industry:"Paving",rating:0,notes:"MHIC# 05-136088",tags:["Paving","Seal Coating"]},
+  {name:"Bowser Concrete & Services",contact:"Tony 'Cobb' Bowser",phone:"410-253-3793",email:"bowsersconcrete@hotmail.com",website:"",address:"Maryland",services:"Concrete services; MBE/DBE Certified",industry:"Concrete",rating:0,notes:"",tags:["Concrete","MBE"]},
+  {name:"Expert House Movers Inc.",contact:"",phone:"1-800-669-7315",email:"",website:"www.experthousemovers.com",address:"Sharptown, MD",services:"House moving, elevating homes against flooding",industry:"House Moving",rating:0,notes:"",tags:["House Moving"]},
+  {name:"Krafft Service Corp.",contact:"",phone:"703-751-7510",email:"",website:"krafftservice.net",address:"Alexandria, VA 22304",services:"Heating & air conditioning; Class A, NATE Certified",industry:"HVAC",rating:0,notes:"MD: 301-294-2960",tags:["HVAC","Heating","AC"]},
+  {name:"Petra Stone Gallery",contact:"",phone:"703-698-5595",email:"",website:"petrastonegallery.com",address:"Fairfax, VA 22031",services:"Marble, granite, quartz, tile; 30 years",industry:"Stone / Tile",rating:0,notes:"",tags:["Marble","Granite","Tile"]},
+  {name:"Otterstedt & Moran",contact:"",phone:"703-495-4060",email:"",website:"www.o-mmachineshop.com",address:"Lorton, VA 22079",services:"Pumps, motors, fans, cooling towers; 24/7 emergency",industry:"Machine Shop",rating:0,notes:"",tags:["Pumps","Motors"]},
+  {name:"Cortez Services LLC",contact:"",phone:"703-501-0769",email:"cortezservicesllc@gmail.com",website:"www.cortezservicesllc.com",address:"Virginia",services:"General remodeling, interior/exterior",industry:"General Contractor",rating:0,notes:"",tags:["Remodeling"]},
+  {name:"Professional Floor Installer",contact:"",phone:"703-498-8649",email:"",website:"www.profloorinstall.com",address:"Springfield, VA",services:"LVP, wood, carpet, tile; hardwood finishing; Certified CFI",industry:"Flooring",rating:0,notes:"Also: 571-221-4186",tags:["Flooring","Hardwood"]},
+  {name:"CEA Insulation Inc.",contact:"",phone:"703-856-2767",email:"estimates@ceainsulationinc.com",website:"ceainsulationinc.com",address:"Manassas, VA",services:"Commercial & industrial insulation for HVAC, mechanical, plumbing",industry:"Insulation",rating:0,notes:"",tags:["Insulation"]},
+  {name:"Leo's Remodeling LLC",contact:"",phone:"301-275-7821",email:"buecoleonidas@gmail.com",website:"",address:"Maryland",services:"Painting, drywall, ceramic, power washing, hardwood floors",industry:"Remodeling",rating:0,notes:"",tags:["Painting","Drywall"]},
+  {name:"Loudoun Sheet Metal",contact:"",phone:"703-631-5000",email:"inquiries@lsmco.com",website:"LoudounSheetMetal.com",address:"Chantilly, VA 20151",services:"Commercial HVAC, custom ductwork, architectural sheet metal; since 1969",industry:"Sheet Metal / HVAC",rating:0,notes:"",tags:["Sheet Metal","HVAC"]},
+  {name:"Green to Ground Electrical",contact:"",phone:"540-692-8412",email:"office@greentoground.com",website:"GreentoGround.com",address:"Front Royal, VA 22630",services:"Residential & commercial electrical, EV chargers, generators",industry:"Electrical",rating:0,notes:"",tags:["Electrical","EV Chargers"]},
+  {name:"Chandler's Plumbing & Heating",contact:"",phone:"703-536-4750",email:"",website:"ChandlersPlumbing.com",address:"Falls Church, VA 22044",services:"Plumbing, heating, AC, electrical, bathroom remodeling; since 1971",industry:"Plumbing / HVAC",rating:0,notes:"",tags:["Plumbing","Heating"]},
+  {name:"Hampton Roads Services (HRS)",contact:"",phone:"757-689-8503",email:"",website:"www.hrs757.com",address:"Virginia Beach, VA 23453",services:"Commercial/residential construction, mechanical, renovations, restoration",industry:"General Contractor",rating:0,notes:"Class A",tags:["Construction","Renovation"]},
+  {name:"AHR Service",contact:"",phone:"703-941-8676",email:"",website:"www.ahrheatingandcooling.com",address:"Alexandria, VA 22314",services:"Heating, AC, geothermal, ductless, VRF; 24/7; since 1998",industry:"HVAC",rating:0,notes:"",tags:["HVAC","Geothermal"]},
+  {name:"Juarez Remodeling Service",contact:"",phone:"571-244-2705",email:"",website:"",address:"Virginia",services:"Carpentry, painting, drywall, plumbing, electrical, maintenance",industry:"Handyman",rating:0,notes:"Also: 571-634-1393",tags:["Handyman","Carpentry"]},
+  {name:"Romero Ceramic Tile LLC",contact:"",phone:"571-645-8198",email:"antonioismaelromero@icloud.com",website:"romeroceramictilellc.com",address:"Falls Church, VA",services:"Commercial & residential tile, shower remodeling, backsplash",industry:"Tile Installation",rating:0,notes:"",tags:["Tile","Ceramic"]},
+  {name:"Q3 Designs",contact:"Willi Yabar",phone:"703-362-6992",email:"Willi@Q3designs.com",website:"www.Q3designs.com",address:"Northern Virginia",services:"Whole house renovations, design and build",industry:"Design / Remodeling",rating:0,notes:"",tags:["Design","Renovation"]},
+  {name:"Ismael Ceramic & Porcelain Tile",contact:"",phone:"571-622-6653",email:"ismael8691@gmail.com",website:"www.ismaelceramicporcelainllc.com",address:"Falls Church, VA",services:"Ceramic/porcelain tile, bathroom/kitchen remodeling",industry:"Tile Installation",rating:0,notes:"",tags:["Tile","Porcelain"]},
+  {name:"Direct Electric Services",contact:"",phone:"301-829-7932",email:"",website:"DirectElectricServices.com",address:"Mount Airy, MD 21771",services:"Commercial electrical contractor; since 1995",industry:"Electrical",rating:0,notes:"",tags:["Electrical"]},
+  {name:"Walsh Electric",contact:"",phone:"703-451-6622",email:"",website:"walshelectricalservice.com",address:"Alexandria, VA 22312",services:"Commercial, residential, government electrical; NFPA/NETA; 30+ years",industry:"Electrical",rating:0,notes:"",tags:["Electrical","Government"]},
+  {name:"Rentokil Steritech",contact:"",phone:"",email:"",website:"www.rentokil.com/us",address:"National",services:"Pest control, termite, bed bug control; 100+ years",industry:"Pest Control",rating:0,notes:"",tags:["Pest Control"]},
+  {name:"Air Duct Cleaner LLC",contact:"",phone:"703-906-0443",email:"",website:"www.TheAirDuctCleaner.com",address:"Falls Church, VA",services:"Air duct cleaning, dryer vent, chimney cleaning",industry:"Duct Cleaning",rating:0,notes:"",tags:["Duct Cleaning"]},
+  {name:"Camba Stucco LLC",contact:"",phone:"571-259-7461",email:"",website:"cambastucco.com",address:"Fredericksburg, VA",services:"Stucco, EIFS, caulking, stone installation; 30+ years",industry:"Stucco",rating:0,notes:"",tags:["Stucco","EIFS"]},
+  {name:"Bluestone Builders",contact:"",phone:"703-712-2619",email:"",website:"BluestoneBuildersdc.com",address:"Alexandria, VA 22314",services:"Foundation repair, basement waterproofing, crawl space; Class A since 2004",industry:"Waterproofing",rating:0,notes:"",tags:["Foundation","Waterproofing"]},
+  {name:"Subcomm Pool and Spa",contact:"",phone:"",email:"",website:"subcommpools.com",address:"MD/VA",services:"Pool construction, maintenance, repairs, vinyl liner, leak detection",industry:"Pool Construction",rating:0,notes:"MHIC #133403",tags:["Pool","Spa"]},
+];
+
+// ═══════════════ MAIN APP ═══════════════
+function App(){
+  const [companies,setCompanies]=useState([]);
+  const [loaded,setLoaded]=useState(false);
+  const [search,setSearch]=useState('');
+  const [filter,setFilter]=useState('All');
+  const [selected,setSelected]=useState(null);
+  const [editing,setEditing]=useState(null);
+  const [showMenu,setShowMenu]=useState(false);
+  const [toast,setToast]=useState(null);
+  const fileRef=useRef();
+
+  const flash=msg=>{setToast(msg);setTimeout(()=>setToast(null),2200)};
+
+  useEffect(()=>{
+    (async()=>{
+      let data=await dbGetAll('companies');
+      if(!data.length){
+        for(const c of SEED)await dbPut('companies',{...c,createdAt:Date.now()});
+        data=await dbGetAll('companies');
+      }
+      setCompanies(data);
+      setLoaded(true);
+    })();
+  },[]);
+
+  const refresh=async()=>{setCompanies(await dbGetAll('companies'))};
+
+  const industries=useMemo(()=>{
+    const s=new Set(companies.map(c=>c.industry).filter(Boolean));
+    return ['All',...[...s].sort()];
+  },[companies]);
+
+  const filtered=useMemo(()=>{
+    let list=[...companies];
+    if(search){const q=search.toLowerCase();list=list.filter(c=>
+      c.name.toLowerCase().includes(q)||c.services.toLowerCase().includes(q)||
+      c.industry.toLowerCase().includes(q)||c.phone.includes(q)||
+      (c.address||'').toLowerCase().includes(q)||(c.tags||[]).some(t=>t.toLowerCase().includes(q))||
+      (c.notes||'').toLowerCase().includes(q)||(c.contact||'').toLowerCase().includes(q)
+    )}
+    if(filter!=='All')list=list.filter(c=>c.industry===filter);
+    list.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    return list;
+  },[companies,search,filter]);
+
+  const saveCompany=async(c)=>{
+    await dbPut('companies',c);
+    await refresh();
+    setEditing(null);setSelected(null);
+    flash(c.id?'Saved':'Company added');
+  };
+
+  const removeCompany=async(id)=>{
+    await dbDelete('companies',id);
+    await dbDelete('photos',id);
+    await refresh();
+    setEditing(null);setSelected(null);
+    flash('Removed');
+  };
+
+  const updateRating=async(c,r)=>{
+    await dbPut('companies',{...c,rating:r===c.rating?0:r});
+    await refresh();
+  };
+
+  const exportCSV=()=>{
+    const h=['Name','Contact','Phone','Email','Website','Address','Services','Industry','Rating','Notes','Tags'];
+    const rows=companies.map(c=>[c.name,c.contact,c.phone,c.email,c.website,c.address,c.services,c.industry,c.rating,c.notes,(c.tags||[]).join('; ')]);
+    const csv=[h,...rows].map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='contractors.csv';a.click();
+    setShowMenu(false);flash('CSV exported');
+  };
+
+  const exportJSON=()=>{
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(companies,null,2)],{type:'application/json'}));a.download='contractors.json';a.click();
+    setShowMenu(false);flash('JSON exported');
+  };
+
+  const importJSON=()=>{
+    const inp=document.createElement('input');inp.type='file';inp.accept='.json';
+    inp.onchange=async e=>{
+      const f=e.target.files[0];if(!f)return;
+      const txt=await f.text();
+      try{
+        const data=JSON.parse(txt);
+        if(Array.isArray(data)){for(const c of data){delete c.id;await dbPut('companies',{...c,createdAt:Date.now()})}
+        await refresh();flash(`Imported ${data.length} companies`);}
+      }catch(err){flash('Invalid file')}
+    };inp.click();setShowMenu(false);
+  };
+
+  if(!loaded)return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'var(--muted)'}}>Loading...</div>;
+
+  return(
+    <div className="app">
+      <div className="header">
+        <h1>Contractor Directory</h1>
+        <div style={{position:'relative'}}>
+          <button className="header-btn" onClick={()=>setShowMenu(!showMenu)}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+          {showMenu&&<><div className="menu-overlay" onClick={()=>setShowMenu(false)}/><div className="menu">
+            <div className="menu-item" onClick={exportCSV}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export CSV</div>
+            <div className="menu-item" onClick={exportJSON}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export JSON</div>
+            <div className="menu-divider"/>
+            <div className="menu-item" onClick={importJSON}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import JSON</div>
+          </div></>}
+        </div>
+      </div>
+
+      <div className="body-wrap">
+        <div className="stats">
+          <div className="stat"><div className="stat-n">{companies.length}</div><div className="stat-l">Total</div></div>
+          <div className="stat"><div className="stat-n">{filtered.length}</div><div className="stat-l">Showing</div></div>
+          <div className="stat"><div className="stat-n">{industries.length-1}</div><div className="stat-l">Industries</div></div>
+          <div className="stat"><div className="stat-n">{companies.filter(c=>c.rating>=4).length}</div><div className="stat-l">Top Rated</div></div>
+        </div>
+
+        <div className="search-bar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input placeholder="Search name, service, tag, location..." value={search} onChange={e=>setSearch(e.target.value)}/>
+        </div>
+
+        <div className="filter-row">
+          {industries.map(i=><div key={i} className={`chip ${filter===i?'active':''}`} onClick={()=>setFilter(filter===i?'All':i)}>{i==='All'?`All (${companies.length})`:i}</div>)}
+        </div>
+
+        {filtered.length===0?(
+          <div className="empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
+            <h3>No companies found</h3>
+            <p>Try a different search or filter</p>
+          </div>
+        ):(
+          filtered.map(c=><CompanyCard key={c.id} c={c} onClick={()=>setSelected(c)} onRate={(r)=>updateRating(c,r)}/>)
+        )}
+      </div>
+
+      <button className="fab" onClick={()=>setEditing({name:'',contact:'',phone:'',email:'',website:'',address:'',services:'',industry:'',rating:0,notes:'',tags:[],createdAt:Date.now()})}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+
+      {selected&&<DetailSheet c={selected} onClose={()=>setSelected(null)} onEdit={()=>{setEditing(selected);setSelected(null)}} onDelete={()=>removeCompany(selected.id)}/>}
+      {editing&&<EditSheet c={editing} onClose={()=>setEditing(null)} onSave={saveCompany} industries={industries.filter(i=>i!=='All')}/>}
+      {toast&&<div className="toast">{toast}</div>}
+    </div>
+  );
+}
+
+// ═══════════════ COMPANY CARD ═══════════════
+function CompanyCard({c,onClick,onRate}){
+  const [photo,setPhoto]=useState(null);
+  useEffect(()=>{(async()=>{try{const p=await dbGetAll('photos');const m=p.find(x=>x.companyId===c.id);if(m)setPhoto(m.data)}catch(e){}})()},[c.id]);
+  return(
+    <div className="card" onClick={onClick}>
+      <div className="card-top">
+        <div style={{flex:1}}>
+          <div className="card-name">{c.name}</div>
+          {c.contact&&<div style={{fontSize:12,color:'var(--muted)',marginTop:1}}>{c.contact}</div>}
+        </div>
+        <span className="card-industry">{c.industry}</span>
+        {photo&&<img src={photo} className="card-photo" alt=""/>}
+      </div>
+      {c.phone&&<div className="card-detail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 11.042 11.042 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><a href={"tel:"+c.phone.replace(/[^0-9+]/g,'')} onClick={e=>e.stopPropagation()} style={{color:'var(--accent2)',textDecoration:'none'}}>{c.phone}</a></div>}
+      {c.services&&<div className="card-services">{c.services}</div>}
+      <div className="card-footer">
+        <div className="card-tags">{(c.tags||[]).slice(0,4).map(t=><span key={t} className="tag">{t}</span>)}</div>
+        <div className="stars" onClick={e=>e.stopPropagation()}>
+          {[1,2,3,4,5].map(i=><svg key={i} viewBox="0 0 24 24" width="16" height="16" className={`star-icon ${i<=c.rating?'filled':''}`} fill={i<=c.rating?'currentColor':'none'} stroke="currentColor" strokeWidth="2" onClick={e=>{e.stopPropagation();onRate(i)}}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════ DETAIL SHEET ═══════════════
+function DetailSheet({c,onClose,onEdit,onDelete}){
+  const [photo,setPhoto]=useState(null);
+  useEffect(()=>{(async()=>{try{const p=await dbGetAll('photos');const m=p.find(x=>x.companyId===c.id);if(m)setPhoto(m.data)}catch(e){}})()},[c.id]);
+  return(
+    <div className="overlay" onClick={onClose}>
+      <div className="sheet" onClick={e=>e.stopPropagation()}>
+        <div className="sheet-handle"/>
+        <div className="sheet-header"><h2>{c.name}</h2><button className="sheet-close" onClick={onClose}>×</button></div>
+        <div className="sheet-body">
+          {photo&&<img src={photo} className="detail-photo" alt="Business card"/>}
+          {c.contact&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div><div className="detail-label">Contact</div><div className="detail-value">{c.contact}</div></div></div>}
+          {c.phone&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 11.042 11.042 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><div><div className="detail-label">Phone</div><div className="detail-value"><a href={"tel:"+c.phone.replace(/[^0-9+]/g,'')}>{c.phone}</a></div></div></div>}
+          {c.email&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><div><div className="detail-label">Email</div><div className="detail-value"><a href={"mailto:"+c.email}>{c.email}</a></div></div></div>}
+          {c.website&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><div><div className="detail-label">Website</div><div className="detail-value"><a href={(c.website.startsWith('http')?'':'https://')+c.website} target="_blank" rel="noopener">{c.website}</a></div></div></div>}
+          {c.address&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><div><div className="detail-label">Address</div><div className="detail-value">{c.address}</div></div></div>}
+          {c.services&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg><div><div className="detail-label">Services</div><div className="detail-value">{c.services}</div></div></div>}
+          {c.notes&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><div><div className="detail-label">Notes</div><div className="detail-value">{c.notes}</div></div></div>}
+          {(c.tags||[]).length>0&&<div style={{marginTop:8}}><div className="card-tags">{c.tags.map(t=><span key={t} className="tag" style={{fontSize:12,padding:'3px 10px'}}>{t}</span>)}</div></div>}
+          <div className="btn-row" style={{marginTop:16}}>
+            <button className="btn btn-danger" style={{flex:0,padding:'10px 16px'}} onClick={()=>{if(confirm('Delete this company?'))onDelete()}}>Delete</button>
+            <div style={{flex:1}}/>
+            <button className="btn btn-secondary" onClick={onClose} style={{flex:0,padding:'10px 20px'}}>Close</button>
+            <button className="btn btn-primary" onClick={onEdit} style={{flex:0,padding:'10px 20px'}}>Edit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════ EDIT SHEET ═══════════════
+function EditSheet({c,onClose,onSave,industries}){
+  const [f,setF]=useState({...c,tags:c.tags||[]});
+  const [tagIn,setTagIn]=useState('');
+  const [photoData,setPhotoData]=useState(null);
+  const [existingPhoto,setExistingPhoto]=useState(null);
+  const fileRef=useRef();
+
+  useEffect(()=>{
+    if(c.id){(async()=>{try{const p=await dbGetAll('photos');const m=p.find(x=>x.companyId===c.id);if(m)setExistingPhoto(m.data)}catch(e){}})()}
+  },[c.id]);
+
+  const set=(k,v)=>setF(p=>({...p,[k]:v}));
+
+  const handlePhoto=e=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const img=new Image();
+      img.onload=()=>{
+        const MAX=800;let w=img.width,h=img.height;
+        if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w*=r;h*=r}
+        const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        setPhotoData(canvas.toDataURL('image/jpeg',0.7));
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const doSave=async()=>{
+    const saved=await dbPut('companies',f);
+    const companyId=f.id||saved;
+    if(photoData)await dbPut('photos',{companyId,data:photoData});
+    onSave({...f,id:companyId});
+  };
+
+  const addTag=()=>{if(tagIn.trim()&&!f.tags.includes(tagIn.trim())){set('tags',[...f.tags,tagIn.trim()]);setTagIn('')}};
+
+  return(
+    <div className="overlay" onClick={onClose}>
+      <div className="sheet" onClick={e=>e.stopPropagation()}>
+        <div className="sheet-handle"/>
+        <div className="sheet-header"><h2>{c.id?'Edit Company':'New Company'}</h2><button className="sheet-close" onClick={onClose}>×</button></div>
+        <div className="sheet-body">
+          <div className="photo-area" onClick={()=>fileRef.current.click()}>
+            <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{display:'none'}} onChange={handlePhoto}/>
+            {photoData||existingPhoto?(
+              <img src={photoData||existingPhoto} className="photo-preview" alt="Card photo"/>
+            ):(
+              <>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <p>Tap to take photo or upload</p>
+                <div className="hint">Snap a business card, truck sign, or ad</div>
+              </>
+            )}
+          </div>
+
+          <div className="field"><label>Company Name *</label><input value={f.name} onChange={e=>set('name',e.target.value)} placeholder="Company name"/></div>
+          <div className="row2">
+            <div className="field"><label>Phone</label><input value={f.phone} onChange={e=>set('phone',e.target.value)} placeholder="Phone" type="tel"/></div>
+            <div className="field"><label>Contact Person</label><input value={f.contact} onChange={e=>set('contact',e.target.value)} placeholder="Name"/></div>
+          </div>
+          <div className="row2">
+            <div className="field"><label>Email</label><input value={f.email} onChange={e=>set('email',e.target.value)} placeholder="Email" type="email"/></div>
+            <div className="field"><label>Website</label><input value={f.website} onChange={e=>set('website',e.target.value)} placeholder="www..."/></div>
+          </div>
+          <div className="field"><label>Industry</label><input list="ind-list" value={f.industry} onChange={e=>set('industry',e.target.value)} placeholder="Type or select"/><datalist id="ind-list">{industries.map(i=><option key={i} value={i}/>)}</datalist></div>
+          <div className="field"><label>Address</label><input value={f.address} onChange={e=>set('address',e.target.value)} placeholder="Full address"/></div>
+          <div className="field"><label>Services</label><textarea value={f.services} onChange={e=>set('services',e.target.value)} placeholder="What they do..."/></div>
+          <div className="field"><label>Notes</label><textarea value={f.notes} onChange={e=>set('notes',e.target.value)} placeholder="Your personal notes, pricing, etc."/></div>
+          <div className="row2">
+            <div className="field"><label>Rating</label><div className="stars">{[1,2,3,4,5].map(i=><svg key={i} viewBox="0 0 24 24" width="24" height="24" className={`star-icon ${i<=f.rating?'filled':''}`} fill={i<=f.rating?'currentColor':'none'} stroke="currentColor" strokeWidth="2" onClick={()=>set('rating',i===f.rating?0:i)}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>)}</div></div>
+            <div className="field"><label>Tags</label><div style={{display:'flex',gap:4}}><input value={tagIn} onChange={e=>setTagIn(e.target.value)} placeholder="Add tag" onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();addTag()}}} style={{flex:1}}/><button className="btn btn-secondary" onClick={addTag} style={{width:'auto',padding:'8px 12px',fontSize:13}}>+</button></div>
+            <div className="card-tags" style={{marginTop:6}}>{f.tags.map(t=><span key={t} className="tag" style={{cursor:'pointer',fontSize:12,padding:'3px 8px'}} onClick={()=>set('tags',f.tags.filter(x=>x!==t))}>{t} ×</span>)}</div></div>
+          </div>
+          <button className="btn btn-primary" onClick={doSave} style={{marginTop:8}}>{c.id?'Save Changes':'Add Company'}</button>
+          <button className="btn btn-secondary" onClick={onClose} style={{marginTop:8}}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════ SERVICE WORKER ═══════════════
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
