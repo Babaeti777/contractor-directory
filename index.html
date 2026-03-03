@@ -6,6 +6,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1e3a5f">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; font-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta name="referrer" content="no-referrer">
+<meta name="X-Content-Type-Options" content="nosniff">
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <title>1 Oak Builders — Contractor Directory</title>
@@ -13,124 +16,179 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
 <style>
-:root{--bg:#f5f6f8;--surface:#fff;--border:#e0e3e8;--text:#1a1d23;--muted:#6b7280;--accent:#1e3a5f;--accent2:#2563eb;--accent-light:#e8f0fe;--green:#059669;--yellow:#d97706;--red:#dc2626;--star:#f59e0b;--radius:10px}
+/* ── Theme Variables ── */
+:root{
+  --bg:#f0f2f5;--surface:#ffffff;--surface-raised:#ffffff;--border:#e2e5ea;
+  --text:#1a1d23;--text-secondary:#4b5563;--muted:#6b7280;
+  --accent:#1e3a5f;--accent2:#2563eb;--accent-light:#e8f0fe;--accent-glow:rgba(37,99,235,.12);
+  --green:#059669;--yellow:#d97706;--red:#dc2626;--star:#f59e0b;
+  --radius:12px;--shadow-sm:0 1px 3px rgba(0,0,0,.06);--shadow-md:0 4px 12px rgba(0,0,0,.08);--shadow-lg:0 8px 28px rgba(0,0,0,.12);
+  --header-gradient:linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%);
+  --card-hover-shadow:0 6px 20px rgba(0,0,0,.1);
+  --transition-fast:.15s ease;--transition-normal:.25s ease;
+  color-scheme: light;
+}
+
+[data-theme="dark"]{
+  --bg:#0f1117;--surface:#1a1d27;--surface-raised:#222633;--border:#2d3140;
+  --text:#e8eaf0;--text-secondary:#9ca3af;--muted:#7b8294;
+  --accent:#3b82f6;--accent2:#60a5fa;--accent-light:#1e293b;--accent-glow:rgba(96,165,250,.15);
+  --green:#34d399;--yellow:#fbbf24;--red:#f87171;--star:#fbbf24;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.3);--shadow-md:0 4px 12px rgba(0,0,0,.4);--shadow-lg:0 8px 28px rgba(0,0,0,.5);
+  --header-gradient:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);
+  --card-hover-shadow:0 6px 20px rgba(0,0,0,.4);
+  color-scheme: dark;
+}
+
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);-webkit-tap-highlight-color:transparent;transition:background var(--transition-normal),color var(--transition-normal)}
 
 /* ── Layout ── */
 .app{min-height:100vh;display:flex;flex-direction:column}
-.header{background:var(--accent);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
-.header h1{font-size:17px;font-weight:700;flex:1}
-.header-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.header-btn:active{background:rgba(255,255,255,.25)}
+.header{background:var(--header-gradient);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.header h1{font-size:17px;font-weight:700;flex:1;letter-spacing:-.2px}
+.header-btn{background:rgba(255,255,255,.12);border:none;color:#fff;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--transition-fast);backdrop-filter:blur(4px)}
+.header-btn:hover{background:rgba(255,255,255,.22)}
+.header-btn:active{background:rgba(255,255,255,.3);transform:scale(.94)}
 .header-btn svg{width:20px;height:20px}
 
 .body-wrap{flex:1;padding:12px;max-width:900px;margin:0 auto;width:100%}
 
 /* ── Search ── */
 .search-bar{position:relative;margin-bottom:12px}
-.search-bar input{width:100%;padding:10px 12px 10px 38px;border:1px solid var(--border);border-radius:var(--radius);font-size:15px;background:var(--surface);outline:none}
-.search-bar input:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
-.search-bar svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted)}
+.search-bar input{width:100%;padding:12px 14px 12px 42px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:15px;background:var(--surface);color:var(--text);outline:none;transition:all var(--transition-fast);box-shadow:var(--shadow-sm)}
+.search-bar input::placeholder{color:var(--muted)}
+.search-bar input:focus{border-color:var(--accent2);box-shadow:0 0 0 3px var(--accent-glow),var(--shadow-sm)}
+.search-bar svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted)}
 
 /* ── Filters ── */
 .filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .filter-row::-webkit-scrollbar{display:none}
-.chip{flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .15s}
-.chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.chip{flex-shrink:0;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:500;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;white-space:nowrap;transition:all var(--transition-fast);box-shadow:var(--shadow-sm)}
+.chip:hover{border-color:var(--accent2);color:var(--accent2)}
+.chip.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 8px rgba(30,58,95,.3)}
 
 /* ── Stats ── */
-.stats{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none}
-.stats::-webkit-scrollbar{display:none}
-.stat{flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;min-width:100px}
-.stat-n{font-size:22px;font-weight:700;color:var(--accent)}
-.stat-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.stat{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow-sm);transition:all var(--transition-fast);position:relative;overflow:hidden}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--header-gradient);opacity:0;transition:opacity var(--transition-fast)}
+.stat:hover::before{opacity:1}
+.stat-n{font-size:22px;font-weight:700;color:var(--accent2);letter-spacing:-.5px}
+.stat-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-top:2px}
 
 /* ── Cards ── */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:8px;cursor:pointer;transition:box-shadow .15s}
-.card:active{box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;cursor:pointer;transition:all var(--transition-fast);box-shadow:var(--shadow-sm);position:relative}
+.card:hover{box-shadow:var(--card-hover-shadow);border-color:var(--accent2);transform:translateY(-1px)}
+.card:active{transform:translateY(0);box-shadow:var(--shadow-sm)}
 .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-.card-name{font-size:15px;font-weight:600;line-height:1.3}
-.card-industry{font-size:11px;padding:2px 8px;border-radius:4px;background:#f0f1f3;color:var(--muted);font-weight:500;white-space:nowrap;flex-shrink:0}
+.card-name{font-size:15px;font-weight:600;line-height:1.3;color:var(--text)}
+.card-industry{font-size:11px;padding:3px 10px;border-radius:6px;background:var(--accent-light);color:var(--accent2);font-weight:600;white-space:nowrap;flex-shrink:0;letter-spacing:.2px}
 .card-detail{font-size:13px;color:var(--muted);margin-top:4px;display:flex;align-items:center;gap:6px}
 .card-detail svg{width:14px;height:14px;flex-shrink:0}
-.card-services{font-size:12px;color:var(--muted);margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-services{font-size:12px;color:var(--text-secondary);margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5}
 .card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
 .card-tags{display:flex;gap:4px;flex-wrap:wrap}
-.tag{font-size:10px;padding:2px 6px;border-radius:3px;background:#e8ecf0;color:var(--muted)}
-.stars{display:flex;gap:1px}
-.star-icon{width:16px;height:16px;color:#d1d5db;cursor:pointer}
+.tag{font-size:10px;padding:3px 8px;border-radius:5px;background:var(--accent-light);color:var(--accent2);font-weight:500;transition:all var(--transition-fast)}
+.stars{display:flex;gap:2px}
+.star-icon{width:16px;height:16px;color:var(--border);cursor:pointer;transition:color var(--transition-fast),transform var(--transition-fast)}
+.star-icon:hover{transform:scale(1.2)}
 .star-icon.filled{color:var(--star)}
 
 /* ── Photo thumbnail in card ── */
-.card-photo{width:48px;height:48px;border-radius:6px;object-fit:cover;flex-shrink:0;background:#e8ecf0;margin-left:8px}
+.card-photo{width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--accent-light);margin-left:8px;box-shadow:var(--shadow-sm)}
 
 /* ── FAB ── */
-.fab{position:fixed;bottom:24px;right:16px;width:56px;height:56px;border-radius:28px;background:var(--accent2);color:#fff;border:none;box-shadow:0 4px 16px rgba(37,99,235,.35);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:40;transition:transform .15s}
-.fab:active{transform:scale(.92)}
+.fab{position:fixed;bottom:24px;right:16px;width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;border:none;box-shadow:0 4px 20px rgba(37,99,235,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:40;transition:all var(--transition-fast)}
+.fab:hover{box-shadow:0 6px 28px rgba(37,99,235,.55);transform:translateY(-2px)}
+.fab:active{transform:scale(.92) translateY(0)}
 .fab svg{width:26px;height:26px}
 
 /* ── Bottom Sheet / Modal ── */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:flex-end;justify-content:center}
-.sheet{background:var(--surface);border-radius:16px 16px 0 0;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;animation:slideUp .25s ease-out}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);animation:fadeOverlay .2s ease-out}
+@keyframes fadeOverlay{from{opacity:0}to{opacity:1}}
+.sheet{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;animation:slideUp .3s cubic-bezier(.16,1,.3,1)}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.sheet-handle{width:36px;height:4px;border-radius:2px;background:#d1d5db;margin:8px auto 4px}
+.sheet-handle{width:40px;height:4px;border-radius:2px;background:var(--border);margin:10px auto 4px}
 .sheet-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 4px}
-.sheet-header h2{font-size:17px;font-weight:700}
-.sheet-close{width:32px;height:32px;border-radius:8px;border:none;background:#f1f3f5;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--muted)}
+.sheet-header h2{font-size:18px;font-weight:700;color:var(--text)}
+.sheet-close{width:32px;height:32px;border-radius:10px;border:none;background:var(--accent-light);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--muted);transition:all var(--transition-fast)}
+.sheet-close:hover{background:var(--border);color:var(--text)}
 .sheet-body{padding:8px 16px 24px}
 
 .field{margin-bottom:12px}
-.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px}
-.field input,.field textarea,.field select{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:15px;font-family:inherit;outline:none;-webkit-appearance:none}
-.field input:focus,.field textarea:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+.field input,.field textarea,.field select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit;outline:none;background:var(--surface);color:var(--text);transition:all var(--transition-fast);-webkit-appearance:none}
+.field input::placeholder,.field textarea::placeholder{color:var(--muted)}
+.field input:focus,.field textarea:focus{border-color:var(--accent2);box-shadow:0 0 0 3px var(--accent-glow)}
 .field textarea{resize:vertical;min-height:60px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
-.btn{padding:12px 20px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:all .15s;width:100%}
-.btn:active{transform:scale(.97)}
-.btn-primary{background:var(--accent2);color:#fff}
-.btn-secondary{background:#f1f3f5;color:var(--text)}
-.btn-danger{background:var(--red);color:#fff}
+.btn{padding:12px 20px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:all var(--transition-fast);width:100%}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:scale(.97) translateY(0)}
+.btn-primary{background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.3)}
+.btn-primary:hover{box-shadow:0 4px 14px rgba(37,99,235,.4)}
+.btn-secondary{background:var(--accent-light);color:var(--text)}
+.btn-danger{background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;box-shadow:0 2px 8px rgba(220,38,38,.25)}
 .btn-row{display:flex;gap:8px;margin-top:12px}
 
 /* ── Photo upload area ── */
-.photo-area{border:2px dashed var(--border);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:border-color .15s;margin-bottom:12px}
-.photo-area:hover,.photo-area.active{border-color:var(--accent2)}
+.photo-area{border:2px dashed var(--border);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:all var(--transition-fast);margin-bottom:12px;background:var(--bg)}
+.photo-area:hover,.photo-area.active{border-color:var(--accent2);background:var(--accent-light)}
 .photo-area svg{width:32px;height:32px;color:var(--muted);margin-bottom:6px}
 .photo-area p{font-size:13px;color:var(--muted)}
-.photo-area .hint{font-size:11px;color:#b0b5be;margin-top:2px}
+.photo-area .hint{font-size:11px;color:var(--muted);margin-top:2px;opacity:.7}
 .photo-preview{width:100%;max-height:200px;object-fit:contain;border-radius:8px;margin-top:8px}
 
 /* ── Detail view ── */
-.detail-photo{width:100%;max-height:220px;object-fit:contain;border-radius:8px;margin-bottom:12px;background:#f0f1f3}
-.detail-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #f0f1f3}
-.detail-row svg{width:18px;height:18px;color:var(--muted);flex-shrink:0;margin-top:1px}
-.detail-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;font-weight:600}
-.detail-value{font-size:14px;margin-top:1px}
-.detail-value a{color:var(--accent2);text-decoration:none}
+.detail-photo{width:100%;max-height:220px;object-fit:contain;border-radius:10px;margin-bottom:12px;background:var(--bg)}
+.detail-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.detail-row:last-of-type{border-bottom:none}
+.detail-row svg{width:18px;height:18px;color:var(--accent2);flex-shrink:0;margin-top:1px}
+.detail-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+.detail-value{font-size:14px;margin-top:2px;color:var(--text);line-height:1.5}
+.detail-value a{color:var(--accent2);text-decoration:none;font-weight:500}
+.detail-value a:hover{text-decoration:underline}
 
 /* ── Toast ── */
-.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1a1d23;color:#fff;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:500;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:fadeIn .2s}
-@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:12px 24px;border-radius:12px;font-size:14px;font-weight:500;z-index:200;box-shadow:var(--shadow-lg);animation:toastIn .3s cubic-bezier(.16,1,.3,1)}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(10px) scale(.95)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
 
 /* ── Empty state ── */
 .empty{text-align:center;padding:48px 20px;color:var(--muted)}
 .empty h3{font-size:16px;color:var(--text);margin-bottom:4px}
-.empty svg{width:48px;height:48px;color:#d1d5db;margin-bottom:12px}
+.empty svg{width:48px;height:48px;color:var(--border);margin-bottom:12px}
 
 /* ── Export menu ── */
 .menu-overlay{position:fixed;inset:0;z-index:90}
-.menu{position:absolute;top:48px;right:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.14);min-width:200px;z-index:91;overflow:hidden}
-.menu-item{padding:12px 16px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--text)}
-.menu-item:active{background:#f6f7f9}
+.menu{position:absolute;top:48px;right:8px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;box-shadow:var(--shadow-lg);min-width:200px;z-index:91;overflow:hidden;animation:menuIn .15s ease-out}
+@keyframes menuIn{from{opacity:0;transform:translateY(-4px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.menu-item{padding:12px 16px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--text);transition:background var(--transition-fast)}
+.menu-item:hover{background:var(--accent-light)}
+.menu-item:active{background:var(--border)}
 .menu-divider{height:1px;background:var(--border)}
+
+/* ── Security badge ── */
+.security-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;background:rgba(5,150,105,.12);color:var(--green);margin-left:8px;letter-spacing:.3px}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+
+/* ── Stats responsive ── */
+@media(max-width:480px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+}
 
 /* ── Desktop tweaks ── */
 @media(min-width:640px){
   .body-wrap{padding:20px}
   .card{padding:16px}
   .card-name{font-size:16px}
+  .header{padding:16px 20px}
+  .header h1{font-size:18px}
 }
 </style>
 </head>
@@ -138,6 +196,65 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div id="root"></div>
 <script type="text/babel">
 const {useState,useEffect,useMemo,useCallback,useRef} = React;
+
+// ═══════════════ SECURITY: Input Sanitization ═══════════════
+const sanitizeHTML = (str) => {
+  if (typeof str !== 'string') return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+};
+
+const sanitizeInput = (str) => {
+  if (typeof str !== 'string') return '';
+  return str.replace(/<[^>]*>/g, '').replace(/[<>'"]/g, (c) => {
+    const map = {'<':'&lt;','>':'&gt;',"'":"&#39;",'"':'&quot;'};
+    return map[c] || c;
+  }).trim();
+};
+
+const sanitizeURL = (url) => {
+  if (typeof url !== 'string') return '';
+  const cleaned = url.trim();
+  if (/^(javascript|data|vbscript):/i.test(cleaned)) return '';
+  return cleaned;
+};
+
+const sanitizePhone = (phone) => {
+  if (typeof phone !== 'string') return '';
+  return phone.replace(/[^0-9+\-().\s]/g, '').trim();
+};
+
+const sanitizeEmail = (email) => {
+  if (typeof email !== 'string') return '';
+  const cleaned = email.trim().toLowerCase();
+  if (cleaned && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleaned)) return cleaned;
+  return cleaned;
+};
+
+const validateCompany = (company) => {
+  if (!company || typeof company !== 'object') return null;
+  return {
+    ...company,
+    name: (company.name || '').slice(0, 200),
+    contact: (company.contact || '').slice(0, 200),
+    phone: sanitizePhone(company.phone || ''),
+    email: sanitizeEmail(company.email || ''),
+    website: sanitizeURL(company.website || '').slice(0, 500),
+    address: (company.address || '').slice(0, 500),
+    services: (company.services || '').slice(0, 2000),
+    industry: (company.industry || '').slice(0, 100),
+    rating: Math.max(0, Math.min(5, parseInt(company.rating) || 0)),
+    notes: (company.notes || '').slice(0, 5000),
+    tags: Array.isArray(company.tags)
+      ? company.tags.filter(t => typeof t === 'string').map(t => t.slice(0, 50)).slice(0, 20)
+      : []
+  };
+};
+
+const MAX_IMPORT_SIZE = 10 * 1024 * 1024; // 10MB limit
+const MAX_IMPORT_COUNT = 1000;
+const MAX_PHOTO_SIZE = 2 * 1024 * 1024; // 2MB limit for photos
 
 // ═══════════════ IndexedDB HELPERS ═══════════════
 const DB_NAME='contractor_dir';
@@ -157,6 +274,19 @@ function openDB(){
 async function dbGetAll(store){const db=await openDB();return new Promise((ok,fail)=>{const tx=db.transaction(store,'readonly');const s=tx.objectStore(store);const r=s.getAll();r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error)})}
 async function dbPut(store,val){const db=await openDB();return new Promise((ok,fail)=>{const tx=db.transaction(store,'readwrite');const s=tx.objectStore(store);const r=s.put(val);r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error)})}
 async function dbDelete(store,key){const db=await openDB();return new Promise((ok,fail)=>{const tx=db.transaction(store,'readwrite');const s=tx.objectStore(store);const r=s.delete(key);r.onsuccess=()=>ok();r.onerror=()=>fail(r.error)})}
+
+// ═══════════════ THEME MANAGEMENT ═══════════════
+function getStoredTheme(){
+  try { return localStorage.getItem('theme') || 'light'; } catch(e) { return 'light'; }
+}
+function setStoredTheme(theme){
+  try { localStorage.setItem('theme', theme); } catch(e) {}
+}
+// Apply theme immediately to prevent flash
+(function(){
+  const theme = getStoredTheme();
+  if(theme === 'dark') document.documentElement.setAttribute('data-theme','dark');
+})();
 
 // ═══════════════ SEED DATA ═══════════════
 const SEED=[
@@ -179,7 +309,7 @@ const SEED=[
   {name:"Commercial Restorers LLC",contact:"",phone:"301-560-6414",email:"",website:"CommercialRestorers.com",address:"Rockville, MD 20850",services:"Clean, paint, repair, restoration, refinishing, carpet, remodeling",industry:"Restoration",rating:0,notes:"",tags:["Restoration","Painting"]},
   {name:"Z. Isaac Painting",contact:"",phone:"302-331-8157",email:"",website:"",address:"Delaware",services:"Painting contractor",industry:"Painting",rating:0,notes:"",tags:["Painting"]},
   {name:"Mona Electric Group / ArchKey",contact:"",phone:"800-GET-MONA",email:"",website:"www.GetMona.com",address:"Clinton, MD 20735",services:"Electrical construction, fire alarm, security, technology; since 1966",industry:"Electrical",rating:0,notes:"",tags:["Electrical","Security"]},
-  {name:"Spartan Electric Company",contact:"",phone:"301-831-8300",email:"",website:"www.spartan-electric.com",address:"Ijamsville, MD 21754",services:"Residential & commercial electrical; VA, MD, WV, DC, PA; since 1964",industry:"Electrical",rating:0,notes:"WV: 681-260-2582",tags:["Electrical"]},
+  {name:"Spartan Electric Company",contact:"",phone:"301-831-8300",email:"",website:"www.spartan-electric.com",address:"Ijamsville, MD 21754",services:"Residential & commercial electrical; VA, MD, WV, DC, PA; since 1964",industry:"Electrical",rating:0,notes:"",tags:["Electrical"]},
   {name:"Eastern Fire Protection",contact:"",phone:"301-261-0240",email:"",website:"www.efp669.com",address:"Crofton, MD 21114",services:"Fire sprinkler, fire alarm, power; installation, inspections, repair",industry:"Fire Protection",rating:0,notes:"",tags:["Fire Sprinkler","Fire Alarm"]},
   {name:"Mack Hauling LLC",contact:"",phone:"703-717-3015",email:"",website:"www.mackhauling.com",address:"Falls Church, VA",services:"Junk removal, construction debris, furniture donations, estate cleanouts",industry:"Hauling",rating:0,notes:"",tags:["Hauling","Junk Removal"]},
   {name:"WGM Masonry Contractors",contact:"",phone:"301-389-1830",email:"wgmconst@yahoo.com",website:"",address:"Sandy Spring, MD",services:"Brick, block, concrete, stucco, pavers, stone",industry:"Masonry",rating:0,notes:"",tags:["Brick","Block","Stone"]},
@@ -224,9 +354,19 @@ function App(){
   const [editing,setEditing]=useState(null);
   const [showMenu,setShowMenu]=useState(false);
   const [toast,setToast]=useState(null);
+  const [darkMode,setDarkMode]=useState(getStoredTheme()==='dark');
   const fileRef=useRef();
 
   const flash=msg=>{setToast(msg);setTimeout(()=>setToast(null),2200)};
+
+  // Theme toggle
+  const toggleTheme=useCallback(()=>{
+    const next=!darkMode;
+    setDarkMode(next);
+    if(next){document.documentElement.setAttribute('data-theme','dark')}
+    else{document.documentElement.removeAttribute('data-theme')}
+    setStoredTheme(next?'dark':'light');
+  },[darkMode]);
 
   useEffect(()=>{
     (async()=>{
@@ -261,13 +401,16 @@ function App(){
   },[companies,search,filter]);
 
   const saveCompany=async(c)=>{
-    await dbPut('companies',c);
+    const validated = validateCompany(c);
+    if(!validated || !validated.name.trim()){flash('Company name is required');return;}
+    await dbPut('companies',validated);
     await refresh();
     setEditing(null);setSelected(null);
-    flash(c.id?'Saved':'Company added');
+    flash(validated.id?'Saved':'Company added');
   };
 
   const removeCompany=async(id)=>{
+    if(typeof id !== 'number') return;
     await dbDelete('companies',id);
     await dbDelete('photos',id);
     await refresh();
@@ -276,7 +419,8 @@ function App(){
   };
 
   const updateRating=async(c,r)=>{
-    await dbPut('companies',{...c,rating:r===c.rating?0:r});
+    const rating = Math.max(0, Math.min(5, parseInt(r) || 0));
+    await dbPut('companies',{...c,rating:rating===c.rating?0:rating});
     await refresh();
   };
 
@@ -285,11 +429,13 @@ function App(){
     const rows=companies.map(c=>[c.name,c.contact,c.phone,c.email,c.website,c.address,c.services,c.industry,c.rating,c.notes,(c.tags||[]).join('; ')]);
     const csv=[h,...rows].map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
     const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='contractors.csv';a.click();
+    URL.revokeObjectURL(a.href);
     setShowMenu(false);flash('CSV exported');
   };
 
   const exportJSON=()=>{
     const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(companies,null,2)],{type:'application/json'}));a.download='contractors.json';a.click();
+    URL.revokeObjectURL(a.href);
     setShowMenu(false);flash('JSON exported');
   };
 
@@ -297,21 +443,59 @@ function App(){
     const inp=document.createElement('input');inp.type='file';inp.accept='.json';
     inp.onchange=async e=>{
       const f=e.target.files[0];if(!f)return;
-      const txt=await f.text();
+      if(f.size > MAX_IMPORT_SIZE){flash('File too large (max 10MB)');return;}
+      if(!f.name.endsWith('.json')){flash('Only .json files accepted');return;}
       try{
+        const txt=await f.text();
         const data=JSON.parse(txt);
-        if(Array.isArray(data)){for(const c of data){delete c.id;await dbPut('companies',{...c,createdAt:Date.now()})}
-        await refresh();flash(`Imported ${data.length} companies`);}
-      }catch(err){flash('Invalid file')}
+        if(!Array.isArray(data)){flash('Invalid format: expected array');return;}
+        if(data.length > MAX_IMPORT_COUNT){flash(`Too many entries (max ${MAX_IMPORT_COUNT})`);return;}
+        let imported = 0;
+        for(const c of data){
+          const validated = validateCompany(c);
+          if(validated && validated.name.trim()){
+            delete validated.id;
+            await dbPut('companies',{...validated,createdAt:Date.now()});
+            imported++;
+          }
+        }
+        await refresh();flash(`Imported ${imported} companies`);
+      }catch(err){flash('Invalid JSON file')}
     };inp.click();setShowMenu(false);
   };
 
-  if(!loaded)return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'var(--muted)'}}>Loading...</div>;
+  // Search input sanitization
+  const handleSearch = useCallback((e) => {
+    const val = e.target.value;
+    if(val.length > 200) return;
+    setSearch(val);
+  }, []);
+
+  if(!loaded)return(
+    <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'var(--muted)',flexDirection:'column',gap:12}}>
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{animation:'spin 1s linear infinite'}}>
+        <style>{"@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}"}</style>
+        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+      </svg>
+      <span style={{fontSize:14,fontWeight:500}}>Loading directory...</span>
+    </div>
+  );
 
   return(
     <div className="app">
       <div className="header">
         <h1>Contractor Directory</h1>
+        <span className="security-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Secured
+        </span>
+        <button className="header-btn" onClick={toggleTheme} title={darkMode?'Switch to light mode':'Switch to dark mode'}>
+          {darkMode?(
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          ):(
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          )}
+        </button>
         <div style={{position:'relative'}}>
           <button className="header-btn" onClick={()=>setShowMenu(!showMenu)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
@@ -335,7 +519,7 @@ function App(){
 
         <div className="search-bar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          <input placeholder="Search name, service, tag, location..." value={search} onChange={e=>setSearch(e.target.value)}/>
+          <input placeholder="Search name, service, tag, location..." value={search} onChange={handleSearch} maxLength={200}/>
         </div>
 
         <div className="filter-row">
@@ -373,12 +557,12 @@ function CompanyCard({c,onClick,onRate}){
       <div className="card-top">
         <div style={{flex:1}}>
           <div className="card-name">{c.name}</div>
-          {c.contact&&<div style={{fontSize:12,color:'var(--muted)',marginTop:1}}>{c.contact}</div>}
+          {c.contact&&<div style={{fontSize:12,color:'var(--muted)',marginTop:2}}>{c.contact}</div>}
         </div>
         <span className="card-industry">{c.industry}</span>
         {photo&&<img src={photo} className="card-photo" alt=""/>}
       </div>
-      {c.phone&&<div className="card-detail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 11.042 11.042 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><a href={"tel:"+c.phone.replace(/[^0-9+]/g,'')} onClick={e=>e.stopPropagation()} style={{color:'var(--accent2)',textDecoration:'none'}}>{c.phone}</a></div>}
+      {c.phone&&<div className="card-detail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 11.042 11.042 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><a href={"tel:"+sanitizePhone(c.phone).replace(/[^0-9+]/g,'')} onClick={e=>e.stopPropagation()} style={{color:'var(--accent2)',textDecoration:'none',fontWeight:500}}>{c.phone}</a></div>}
       {c.services&&<div className="card-services">{c.services}</div>}
       <div className="card-footer">
         <div className="card-tags">{(c.tags||[]).slice(0,4).map(t=><span key={t} className="tag">{t}</span>)}</div>
@@ -394,6 +578,13 @@ function CompanyCard({c,onClick,onRate}){
 function DetailSheet({c,onClose,onEdit,onDelete}){
   const [photo,setPhoto]=useState(null);
   useEffect(()=>{(async()=>{try{const p=await dbGetAll('photos');const m=p.find(x=>x.companyId===c.id);if(m)setPhoto(m.data)}catch(e){}})()},[c.id]);
+
+  const safeWebsiteURL = (url) => {
+    const cleaned = sanitizeURL(url);
+    if(!cleaned) return null;
+    return cleaned.startsWith('http') ? cleaned : 'https://' + cleaned;
+  };
+
   return(
     <div className="overlay" onClick={onClose}>
       <div className="sheet" onClick={e=>e.stopPropagation()}>
@@ -402,13 +593,13 @@ function DetailSheet({c,onClose,onEdit,onDelete}){
         <div className="sheet-body">
           {photo&&<img src={photo} className="detail-photo" alt="Business card"/>}
           {c.contact&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div><div className="detail-label">Contact</div><div className="detail-value">{c.contact}</div></div></div>}
-          {c.phone&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 11.042 11.042 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><div><div className="detail-label">Phone</div><div className="detail-value"><a href={"tel:"+c.phone.replace(/[^0-9+]/g,'')}>{c.phone}</a></div></div></div>}
-          {c.email&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><div><div className="detail-label">Email</div><div className="detail-value"><a href={"mailto:"+c.email}>{c.email}</a></div></div></div>}
-          {c.website&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><div><div className="detail-label">Website</div><div className="detail-value"><a href={(c.website.startsWith('http')?'':'https://')+c.website} target="_blank" rel="noopener">{c.website}</a></div></div></div>}
+          {c.phone&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 11.042 11.042 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><div><div className="detail-label">Phone</div><div className="detail-value"><a href={"tel:"+sanitizePhone(c.phone).replace(/[^0-9+]/g,'')}>{c.phone}</a></div></div></div>}
+          {c.email&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><div><div className="detail-label">Email</div><div className="detail-value"><a href={"mailto:"+sanitizeEmail(c.email)}>{c.email}</a></div></div></div>}
+          {c.website&&safeWebsiteURL(c.website)&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><div><div className="detail-label">Website</div><div className="detail-value"><a href={safeWebsiteURL(c.website)} target="_blank" rel="noopener noreferrer">{c.website}</a></div></div></div>}
           {c.address&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><div><div className="detail-label">Address</div><div className="detail-value">{c.address}</div></div></div>}
           {c.services&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg><div><div className="detail-label">Services</div><div className="detail-value">{c.services}</div></div></div>}
           {c.notes&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><div><div className="detail-label">Notes</div><div className="detail-value">{c.notes}</div></div></div>}
-          {(c.tags||[]).length>0&&<div style={{marginTop:8}}><div className="card-tags">{c.tags.map(t=><span key={t} className="tag" style={{fontSize:12,padding:'3px 10px'}}>{t}</span>)}</div></div>}
+          {(c.tags||[]).length>0&&<div style={{marginTop:8}}><div className="card-tags">{c.tags.map(t=><span key={t} className="tag" style={{fontSize:12,padding:'4px 12px'}}>{t}</span>)}</div></div>}
           <div className="btn-row" style={{marginTop:16}}>
             <button className="btn btn-danger" style={{flex:0,padding:'10px 16px'}} onClick={()=>{if(confirm('Delete this company?'))onDelete()}}>Delete</button>
             <div style={{flex:1}}/>
@@ -437,6 +628,8 @@ function EditSheet({c,onClose,onSave,industries}){
 
   const handlePhoto=e=>{
     const file=e.target.files[0];if(!file)return;
+    if(!file.type.startsWith('image/')){alert('Only image files allowed');return;}
+    if(file.size > MAX_PHOTO_SIZE * 5){alert('Photo too large (max 10MB)');return;}
     const reader=new FileReader();
     reader.onload=ev=>{
       const img=new Image();
@@ -445,7 +638,9 @@ function EditSheet({c,onClose,onSave,industries}){
         if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w*=r;h*=r}
         const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
         canvas.getContext('2d').drawImage(img,0,0,w,h);
-        setPhotoData(canvas.toDataURL('image/jpeg',0.7));
+        const result = canvas.toDataURL('image/jpeg',0.7);
+        if(result.length > MAX_PHOTO_SIZE){alert('Compressed photo still too large');return;}
+        setPhotoData(result);
       };
       img.src=ev.target.result;
     };
@@ -453,13 +648,19 @@ function EditSheet({c,onClose,onSave,industries}){
   };
 
   const doSave=async()=>{
+    if(!f.name.trim()){alert('Company name is required');return;}
     const saved=await dbPut('companies',f);
     const companyId=f.id||saved;
     if(photoData)await dbPut('photos',{companyId,data:photoData});
     onSave({...f,id:companyId});
   };
 
-  const addTag=()=>{if(tagIn.trim()&&!f.tags.includes(tagIn.trim())){set('tags',[...f.tags,tagIn.trim()]);setTagIn('')}};
+  const addTag=()=>{
+    const tag = tagIn.trim().slice(0, 50);
+    if(tag && !f.tags.includes(tag) && f.tags.length < 20){
+      set('tags',[...f.tags,tag]);setTagIn('');
+    }
+  };
 
   return(
     <div className="overlay" onClick={onClose}>
@@ -480,22 +681,22 @@ function EditSheet({c,onClose,onSave,industries}){
             )}
           </div>
 
-          <div className="field"><label>Company Name *</label><input value={f.name} onChange={e=>set('name',e.target.value)} placeholder="Company name"/></div>
+          <div className="field"><label>Company Name *</label><input value={f.name} onChange={e=>set('name',e.target.value.slice(0,200))} placeholder="Company name" maxLength={200}/></div>
           <div className="row2">
-            <div className="field"><label>Phone</label><input value={f.phone} onChange={e=>set('phone',e.target.value)} placeholder="Phone" type="tel"/></div>
-            <div className="field"><label>Contact Person</label><input value={f.contact} onChange={e=>set('contact',e.target.value)} placeholder="Name"/></div>
+            <div className="field"><label>Phone</label><input value={f.phone} onChange={e=>set('phone',e.target.value.slice(0,30))} placeholder="Phone" type="tel" maxLength={30}/></div>
+            <div className="field"><label>Contact Person</label><input value={f.contact} onChange={e=>set('contact',e.target.value.slice(0,200))} placeholder="Name" maxLength={200}/></div>
           </div>
           <div className="row2">
-            <div className="field"><label>Email</label><input value={f.email} onChange={e=>set('email',e.target.value)} placeholder="Email" type="email"/></div>
-            <div className="field"><label>Website</label><input value={f.website} onChange={e=>set('website',e.target.value)} placeholder="www..."/></div>
+            <div className="field"><label>Email</label><input value={f.email} onChange={e=>set('email',e.target.value.slice(0,200))} placeholder="Email" type="email" maxLength={200}/></div>
+            <div className="field"><label>Website</label><input value={f.website} onChange={e=>set('website',e.target.value.slice(0,500))} placeholder="www..." maxLength={500}/></div>
           </div>
-          <div className="field"><label>Industry</label><input list="ind-list" value={f.industry} onChange={e=>set('industry',e.target.value)} placeholder="Type or select"/><datalist id="ind-list">{industries.map(i=><option key={i} value={i}/>)}</datalist></div>
-          <div className="field"><label>Address</label><input value={f.address} onChange={e=>set('address',e.target.value)} placeholder="Full address"/></div>
-          <div className="field"><label>Services</label><textarea value={f.services} onChange={e=>set('services',e.target.value)} placeholder="What they do..."/></div>
-          <div className="field"><label>Notes</label><textarea value={f.notes} onChange={e=>set('notes',e.target.value)} placeholder="Your personal notes, pricing, etc."/></div>
+          <div className="field"><label>Industry</label><input list="ind-list" value={f.industry} onChange={e=>set('industry',e.target.value.slice(0,100))} placeholder="Type or select" maxLength={100}/><datalist id="ind-list">{industries.map(i=><option key={i} value={i}/>)}</datalist></div>
+          <div className="field"><label>Address</label><input value={f.address} onChange={e=>set('address',e.target.value.slice(0,500))} placeholder="Full address" maxLength={500}/></div>
+          <div className="field"><label>Services</label><textarea value={f.services} onChange={e=>set('services',e.target.value.slice(0,2000))} placeholder="What they do..." maxLength={2000}/></div>
+          <div className="field"><label>Notes</label><textarea value={f.notes} onChange={e=>set('notes',e.target.value.slice(0,5000))} placeholder="Your personal notes, pricing, etc." maxLength={5000}/></div>
           <div className="row2">
             <div className="field"><label>Rating</label><div className="stars">{[1,2,3,4,5].map(i=><svg key={i} viewBox="0 0 24 24" width="24" height="24" className={`star-icon ${i<=f.rating?'filled':''}`} fill={i<=f.rating?'currentColor':'none'} stroke="currentColor" strokeWidth="2" onClick={()=>set('rating',i===f.rating?0:i)}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>)}</div></div>
-            <div className="field"><label>Tags</label><div style={{display:'flex',gap:4}}><input value={tagIn} onChange={e=>setTagIn(e.target.value)} placeholder="Add tag" onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();addTag()}}} style={{flex:1}}/><button className="btn btn-secondary" onClick={addTag} style={{width:'auto',padding:'8px 12px',fontSize:13}}>+</button></div>
+            <div className="field"><label>Tags ({f.tags.length}/20)</label><div style={{display:'flex',gap:4}}><input value={tagIn} onChange={e=>setTagIn(e.target.value.slice(0,50))} placeholder="Add tag" maxLength={50} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();addTag()}}} style={{flex:1}}/><button className="btn btn-secondary" onClick={addTag} style={{width:'auto',padding:'8px 12px',fontSize:13}}>+</button></div>
             <div className="card-tags" style={{marginTop:6}}>{f.tags.map(t=><span key={t} className="tag" style={{cursor:'pointer',fontSize:12,padding:'3px 8px'}} onClick={()=>set('tags',f.tags.filter(x=>x!==t))}>{t} ×</span>)}</div></div>
           </div>
           <button className="btn btn-primary" onClick={doSave} style={{marginTop:8}}>{c.id?'Save Changes':'Add Company'}</button>
