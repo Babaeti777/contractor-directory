@@ -229,6 +229,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .photo-lightbox img{max-width:100%;max-height:90vh;border-radius:12px;object-fit:contain}
 .photo-lightbox-close{position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 
+/* ── Secondary FAB (batch scan) ── */
+.fab.fab-secondary{background:linear-gradient(135deg,#059669,#34d399);box-shadow:0 4px 20px rgba(5,150,105,.4);border-radius:14px;width:48px;height:48px}
+.fab.fab-secondary:hover{box-shadow:0 6px 28px rgba(5,150,105,.55)}
+.fab.fab-secondary svg{width:22px;height:22px}
+
+/* ── Duplicate Detection Bar ── */
+.duplicate-bar{border:1.5px solid var(--yellow);border-radius:10px;padding:8px 12px;background:rgba(217,119,6,.06);margin-top:8px}
+.duplicate-item{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--yellow)}
+.duplicate-item strong{color:var(--text)}
+
+/* ── Batch Scan ── */
+.batch-sheet{max-height:95vh}
+.batch-item{border:1.5px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden;transition:all var(--transition-fast)}
+.batch-item.batch-skip{opacity:.45}
+.batch-item-header{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;transition:background var(--transition-fast)}
+.batch-item-header:hover{background:var(--accent-light)}
+.batch-thumb{width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0}
+.batch-badge{font-size:11px;padding:3px 8px;border-radius:6px;font-weight:600;flex-shrink:0;white-space:nowrap}
+.batch-badge-new{background:rgba(5,150,105,.1);color:var(--green)}
+.batch-badge-warn{background:rgba(217,119,6,.1);color:var(--yellow)}
+.batch-badge-skip{background:rgba(107,114,128,.1);color:var(--muted)}
+.batch-item-body{padding:8px 12px 12px;border-top:1px solid var(--border);background:var(--bg)}
+.batch-action-btn{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text);transition:all var(--transition-fast)}
+.batch-action-btn:hover{border-color:var(--accent2)}
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -364,45 +389,274 @@ async function extractTextFromImage(imageData, onProgress){
   return result.data.text;
 }
 
+// ═══════════════ Smart Business Card / Truck Sign Parser ═══════════════
+const NOISE_PATTERNS = [
+  /^licensed[,.]?\s*bonded\s*[&,]\s*insured$/i,
+  /^commercial\s*[&,]\s*residential$/i,
+  /^residential\s*[&,]\s*commercial$/i,
+  /^family\s*owned\s*[&,]?\s*operated$/i,
+  /^free\s*estimates?$/i,
+  /^se\s*habla\s*espa[nñ]ol$/i,
+  /^24\s*\/?\s*7/i,
+  /^since\s+\d{4}$/i,
+  /^est\.?\s*\d{4}$/i,
+  /^class\s+[a-c]\s/i,
+  /^general\s*contractor$/i,
+  /^speed\s*limit/i,
+  /^vehicle.*monitored/i,
+  /^transit\s*\d/i,
+  /^ram\s/i,
+  /^promaster/i,
+  /^ford$/i,
+];
+
+const NOTE_PATTERNS = [
+  /licensed[,.]?\s*bonded\s*[&,]\s*insured/i,
+  /family\s*owned\s*[&,]?\s*operated/i,
+  /free\s*estimates?/i,
+  /se\s*habla\s*espa[nñ]ol/i,
+  /24\s*\/?\s*7\s*(emergency|service|hours)/i,
+  /since\s+\d{4}/i,
+  /class\s+[a-c]\s/i,
+  /mhic\s*#?\s*[\d-]+/i,
+  /license\s*#?\s*[\d-]+/i,
+  /cert(ified|ification)/i,
+  /MBE|DBE|WBE|DSLBD/i,
+];
+
+const INDUSTRY_KEYWORDS = {
+  'Plumbing':['plumbing','plumber','drain','sewer','water heater','pipe'],
+  'HVAC':['hvac','heating','cooling','air condition','ac ','furnace','heat pump','ductless','geothermal','refrigeration'],
+  'Electrical':['electric','electrical','electrician','wiring','ev charger','generator','lighting'],
+  'Roofing':['roofing','roofer','roof repair','shingle','gutter'],
+  'Painting':['painting','painter','paint'],
+  'General Contractor':['general contractor','remodeling','renovation','home improvement','construction','home addition','kitchen remodel','bathroom remodel','basement'],
+  'Masonry':['masonry','mason','brick','block','stone','concrete','stucco','flagstone'],
+  'Flooring':['flooring','floor','hardwood','tile','carpet','lvp','laminate'],
+  'Waterproofing':['waterproofing','basement waterproof','foundation repair','crawl space'],
+  'Tree Service':['tree service','tree removal','stump','trimming','arborist'],
+  'Paving':['paving','asphalt','seal coat','driveway'],
+  'Hauling':['hauling','junk removal','debris','cleanout'],
+  'Fire Protection':['fire sprinkler','fire alarm','fire protection'],
+  'Pest Control':['pest control','termite','exterminator','bed bug'],
+  'Chimney Service':['chimney','fireplace'],
+  'Garage Doors':['garage door'],
+  'Pool Construction':['pool','spa','swim'],
+  'Insulation':['insulation'],
+  'Containment':['containment','temporary wall'],
+  'Duct Cleaning':['duct cleaning','air duct','dryer vent'],
+};
+
+function detectIndustry(text){
+  const lower = text.toLowerCase();
+  let best = null, bestCount = 0;
+  for(const [industry, keywords] of Object.entries(INDUSTRY_KEYWORDS)){
+    const count = keywords.filter(k => lower.includes(k)).length;
+    if(count > bestCount){bestCount=count;best=industry;}
+  }
+  return best;
+}
+
 function parseBusinessCard(text){
   const fields = {};
-  const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
+  const lines = text.split('\n').map(l=>l.trim()).filter(l=>l.length>1);
 
-  // Phone: look for phone number patterns
-  const phoneMatch = text.match(/(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/);
-  if(phoneMatch) fields.phone = phoneMatch[0];
+  // ── Phone: extract ALL phone numbers ──
+  const phoneRegex = /(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
+  const phones = [...text.matchAll(phoneRegex)].map(m=>m[0]);
+  // Also match toll-free patterns like 1-800-XXX-XXXX or 800-XXX-XXXX
+  const tollFree = /\b1?[-.\s]?8(?:00|55|66|77|88)[-.\s]?\d{3}[-.\s]?\d{4}\b/g;
+  const tolls = [...text.matchAll(tollFree)].map(m=>m[0]);
+  const allPhones = [...new Set([...phones,...tolls])];
+  if(allPhones.length) fields.phone = allPhones.join(', ');
 
-  // Email
+  // ── Email ──
   const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
   if(emailMatch) fields.email = emailMatch[0].toLowerCase();
 
-  // Website
-  const webMatch = text.match(/(?:www\.)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/\S*)?/i)
-    || text.match(/(?:https?:\/\/)?[a-zA-Z0-9.-]+\.(?:com|net|org|io|co|biz|info|us)(?:\/\S*)?/i);
-  if(webMatch){
-    let w = webMatch[0].replace(/^https?:\/\//i,'');
-    fields.website = w;
+  // ── Website: broader patterns including CompanyName.com ──
+  const webPatterns = [
+    /(?:www\.)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/\S*)?/i,
+    /(?:https?:\/\/)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/\S*)?/i,
+    /[a-zA-Z0-9][-a-zA-Z0-9]+\.(?:com|net|org|io|co|biz|info|us|llc)\b/i,
+  ];
+  for(const pat of webPatterns){
+    const m = text.match(pat);
+    if(m){
+      let w = m[0].replace(/^https?:\/\//i,'');
+      // Skip if it looks like an email domain
+      if(!w.includes('@') && !fields.email?.includes(w)){
+        fields.website = w;
+        break;
+      }
+    }
   }
 
-  // Address: look for state abbreviations + zip patterns
-  const addrMatch = text.match(/\d+[^,\n]*(?:,\s*)?(?:Suite|Ste|Apt|#)?\s*\d*[^,\n]*,?\s*[A-Z]{2}\s*\d{5}(?:-\d{4})?/);
+  // ── Address: state + zip or known area patterns ──
+  const addrMatch = text.match(/\d+[^,\n]{3,}(?:,\s*)?[A-Z]{2}\s*\d{5}(?:-\d{4})?/)
+    || text.match(/\d+[^,\n]{5,},\s*[A-Z][a-z]+(?:\s[A-Z][a-z]+)*,?\s*[A-Z]{2}\s*\d{5}/);
   if(addrMatch) fields.address = addrMatch[0].trim();
 
-  // Company name: usually the first or most prominent line (longest non-contact line)
-  const contactLines = lines.filter(l =>
-    !l.match(/\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/) &&
-    !l.match(/@/) &&
-    !l.match(/www\./i) &&
-    !l.match(/\d{5}/) &&
-    l.length > 2 && l.length < 80
-  );
-  if(contactLines.length > 0) fields.name = contactLines[0];
+  // ── Classify lines ──
+  const phoneSet = new Set(allPhones.map(p=>p.replace(/\D/g,'')));
+  const isPhoneLine = l => {
+    const digits = l.replace(/\D/g,'');
+    return digits.length >= 10 && phoneSet.has(digits.slice(-10)) || phoneSet.has(digits);
+  };
+  const isNoise = l => NOISE_PATTERNS.some(p => p.test(l));
+  const isContactInfo = l =>
+    isPhoneLine(l) || /@/.test(l) || /www\./i.test(l) ||
+    /\.com|\.net|\.org/i.test(l) || /\d{5}/.test(l);
 
-  // Services: grab descriptive lines
-  const serviceLines = contactLines.slice(1).filter(l => l.length > 10);
-  if(serviceLines.length > 0) fields.services = serviceLines.join('; ');
+  // ── Extract notes from known patterns ──
+  const noteItems = [];
+  for(const line of lines){
+    for(const pat of NOTE_PATTERNS){
+      if(pat.test(line)){noteItems.push(line);break;}
+    }
+  }
+  if(noteItems.length) fields.notes = noteItems.join('; ');
+
+  // ── Services: detect bullet/separator patterns ──
+  const serviceItems = [];
+  for(const line of lines){
+    if(isContactInfo(line) || isNoise(line)) continue;
+    // Check for bullet/dot/pipe separated lists
+    if(/[•·|]/.test(line) || (line.includes('*') && line.split('*').length > 2)){
+      const parts = line.split(/[•·|*]/).map(s=>s.trim()).filter(s=>s.length>1);
+      serviceItems.push(...parts);
+    }
+    // Check ALL-CAPS service-list lines (common on trucks)
+    else if(line === line.toUpperCase() && line.length > 5 && /[A-Z]{3,}/.test(line) && !isPhoneLine(line)){
+      // Could be company name OR services. Services usually have multiple words or separators
+      const words = line.split(/\s+/);
+      if(words.length >= 3 && !isNoise(line)){
+        serviceItems.push(line.split(/\s{2,}|,\s*/).map(s=>s.trim()).filter(s=>s.length>1).join(', '));
+      }
+    }
+  }
+
+  // ── Company name: score lines by prominence ──
+  const candidateNames = [];
+  for(const line of lines){
+    if(isContactInfo(line) || isNoise(line)) continue;
+    if(noteItems.includes(line)) continue;
+    // Skip lines that look purely like service lists
+    if(serviceItems.some(s => line.includes(s) && s.length > 15)) continue;
+    if(line.length < 3 || line.length > 60) continue;
+
+    let score = 0;
+    // Prefer lines near the top
+    const idx = lines.indexOf(line);
+    score += Math.max(0, 10 - idx);
+    // Prefer ALL-CAPS (company names on trucks are usually large/caps)
+    if(line === line.toUpperCase() && /[A-Z]/.test(line)) score += 5;
+    // Prefer shorter lines (company names are usually concise)
+    if(line.length < 30) score += 3;
+    // Penalize lines with many common service words
+    const serviceWords = ['repair','install','service','cleaning','removal','maintenance'];
+    const svcCount = serviceWords.filter(w => line.toLowerCase().includes(w)).length;
+    score -= svcCount * 2;
+    // Boost if it contains "construction", "electric", company-like words
+    if(/\b(inc|llc|corp|ltd|co\.?|company|group|builders|enterprises)\b/i.test(line)) score += 4;
+
+    candidateNames.push({line, score});
+  }
+  candidateNames.sort((a,b)=>b.score-a.score);
+  if(candidateNames.length > 0){
+    fields.name = candidateNames[0].line
+      .replace(/^(mc\s*)?/i, m => m) // preserve MC prefix
+      .replace(/\s+/g,' ').trim();
+    // Titlecase if all-caps
+    if(fields.name === fields.name.toUpperCase() && fields.name.length > 2){
+      fields.name = fields.name.replace(/\w\S*/g, t =>
+        t.charAt(0).toUpperCase() + t.substr(1).toLowerCase()
+      );
+    }
+  }
+
+  // ── Remaining content lines → services if we didn't get enough ──
+  if(serviceItems.length === 0){
+    const remaining = lines.filter(l =>
+      !isContactInfo(l) && !isNoise(l) && !noteItems.includes(l) &&
+      l !== (candidateNames[0]?.line) && l.length > 8
+    );
+    if(remaining.length) serviceItems.push(...remaining);
+  }
+
+  if(serviceItems.length){
+    fields.services = serviceItems
+      .map(s => s.replace(/^[-•·*]\s*/, '').trim())
+      .filter(s => s.length > 1)
+      .join(', ')
+      .replace(/,\s*,/g, ',')
+      .replace(/\s+/g, ' ')
+      .slice(0, 2000);
+  }
+
+  // ── Industry auto-detection ──
+  const combinedText = [fields.name, fields.services, ...lines].filter(Boolean).join(' ');
+  const industry = detectIndustry(combinedText);
+  if(industry) fields.industry = industry;
 
   return fields;
+}
+
+// ═══════════════ Duplicate Detection ═══════════════
+function normalizeName(name){
+  if(!name) return '';
+  return name.toLowerCase()
+    .replace(/\b(llc|inc|corp|ltd|co\.?|company|services?|solutions?|group|enterprises?|the)\b/gi, '')
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function findDuplicates(parsed, companies){
+  const results = [];
+  const normNew = normalizeName(parsed.name);
+  const newPhones = (parsed.phone||'').replace(/\D/g,'').match(/\d{10}/g) || [];
+
+  for(const existing of companies){
+    let matchType = null;
+    let score = 0;
+
+    // ── Name matching ──
+    const normExist = normalizeName(existing.name);
+    if(normNew && normExist){
+      // Containment check
+      if(normNew.includes(normExist) || normExist.includes(normNew)){
+        score = 0.8;
+        matchType = 'name';
+      } else {
+        // Jaccard word overlap
+        const wordsA = new Set(normNew.split(' ').filter(w=>w.length>1));
+        const wordsB = new Set(normExist.split(' ').filter(w=>w.length>1));
+        const intersection = [...wordsA].filter(w=>wordsB.has(w)).length;
+        const union = new Set([...wordsA,...wordsB]).size;
+        if(union > 0){
+          const jaccard = intersection / union;
+          if(jaccard >= 0.5){score = jaccard;matchType = 'name';}
+        }
+      }
+    }
+
+    // ── Phone matching ──
+    if(newPhones.length > 0){
+      const existPhones = (existing.phone||'').replace(/\D/g,'').match(/\d{10}/g) || [];
+      const phoneMatch = newPhones.some(p => existPhones.some(ep => ep.includes(p) || p.includes(ep)));
+      if(phoneMatch){
+        score = Math.max(score, 0.9);
+        matchType = matchType ? 'both' : 'phone';
+      }
+    }
+
+    if(matchType && score >= 0.5){
+      results.push({company: existing, score, matchType});
+    }
+  }
+
+  return results.sort((a,b)=>b.score-a.score);
 }
 
 // ═══════════════ IndexedDB HELPERS ═══════════════
@@ -618,6 +872,7 @@ function App(){
   const [editing,setEditing]=useState(null);
   const [showMenu,setShowMenu]=useState(false);
   const [toast,setToast]=useState(null);
+  const [showBatchScan,setShowBatchScan]=useState(false);
   const [darkMode,setDarkMode]=useState(getStoredTheme()==='dark');
   const [isLoggedIn,setIsLoggedIn]=useState(()=>getAuthState().isLoggedIn);
   const fileRef=useRef();
@@ -823,12 +1078,16 @@ function App(){
         )}
       </div>
 
+      <button className="fab fab-secondary" onClick={()=>setShowBatchScan(true)} title="Batch Scan" style={{bottom:90}}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 3h6v6H2z"/><path d="M16 3h6v6h-6z"/><path d="M2 15h6v6H2z"/><path d="M19 15v3a2 2 0 0 1-2 2h-3"/><path d="M15 15h6"/></svg>
+      </button>
       <button className="fab" onClick={()=>setEditing({name:'',contact:'',phone:'',email:'',website:'',address:'',services:'',industry:'',rating:0,notes:'',tags:[],createdAt:Date.now()})}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </button>
 
       {selected&&<DetailSheet c={selected} onClose={()=>setSelected(null)} onEdit={()=>{setEditing(selected);setSelected(null)}} onDelete={()=>removeCompany(selected.id)}/>}
-      {editing&&<EditSheet c={editing} onClose={()=>setEditing(null)} onSave={saveCompany} industries={industries.filter(i=>i!=='All')}/>}
+      {editing&&<EditSheet c={editing} onClose={()=>setEditing(null)} onSave={saveCompany} industries={industries.filter(i=>i!=='All')} companies={companies}/>}
+      {showBatchScan&&<BatchScanSheet onClose={()=>setShowBatchScan(false)} companies={companies} onComplete={(count)=>{setShowBatchScan(false);refresh();flash(`Saved ${count} contractor${count>1?'s':''}`)}}/>}
       {toast&&<div className="toast">{toast}</div>}
     </div>
   );
@@ -914,13 +1173,14 @@ function DetailSheet({c,onClose,onEdit,onDelete}){
 }
 
 // ═══════════════ EDIT SHEET ═══════════════
-function EditSheet({c,onClose,onSave,industries}){
+function EditSheet({c,onClose,onSave,industries,companies}){
   const [f,setF]=useState({...c,tags:c.tags||[]});
   const [tagIn,setTagIn]=useState('');
   const [photos,setPhotos]=useState([]);
   const [newPhotos,setNewPhotos]=useState([]);
   const [ocrStatus,setOcrStatus]=useState(null); // null | 'scanning' | 'done' | 'error'
   const [ocrProgress,setOcrProgress]=useState(0);
+  const [duplicates,setDuplicates]=useState([]);
   const cameraRef=useRef();
   const uploadRef=useRef();
   const MAX_PHOTOS=10;
@@ -980,7 +1240,7 @@ function EditSheet({c,onClose,onSave,industries}){
   };
 
   const scanPhoto=async(photoData)=>{
-    setOcrStatus('scanning');setOcrProgress(0);
+    setOcrStatus('scanning');setOcrProgress(0);setDuplicates([]);
     try{
       const text=await extractTextFromImage(photoData,p=>setOcrProgress(Math.round(p*100)));
       const parsed=parseBusinessCard(text);
@@ -993,10 +1253,17 @@ function EditSheet({c,onClose,onSave,industries}){
         if(!updated.website && parsed.website) updated.website=parsed.website;
         if(!updated.address && parsed.address) updated.address=parsed.address;
         if(!updated.services && parsed.services) updated.services=parsed.services;
+        if(!updated.industry && parsed.industry) updated.industry=parsed.industry;
+        if(!updated.notes && parsed.notes) updated.notes=parsed.notes;
         return updated;
       });
+      // Check for duplicates
+      if(parsed.name || parsed.phone){
+        const dupes = findDuplicates(parsed, companies||[]);
+        if(dupes.length) setDuplicates(dupes);
+      }
       setOcrStatus('done');
-      setTimeout(()=>setOcrStatus(null),3000);
+      setTimeout(()=>setOcrStatus(null),4000);
     }catch(err){
       setOcrStatus('error');
       setTimeout(()=>setOcrStatus(null),3000);
@@ -1070,6 +1337,7 @@ function EditSheet({c,onClose,onSave,industries}){
                 )}
                 {ocrStatus==='done'&&<div className="ocr-bar" style={{borderColor:'var(--green)',background:'rgba(5,150,105,.08)'}}><span style={{color:'var(--green)',fontWeight:600,fontSize:13}}>Scan complete — empty fields auto-filled</span></div>}
                 {ocrStatus==='error'&&<div className="ocr-bar" style={{borderColor:'var(--red)',background:'rgba(220,38,38,.08)'}}><span style={{color:'var(--red)',fontWeight:600,fontSize:13}}>Scan failed — try a clearer photo</span></div>}
+                {duplicates.length>0&&<div className="duplicate-bar">{duplicates.map((d,i)=><div key={i} className="duplicate-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Possible duplicate: <strong>{d.company.name}</strong> ({d.matchType} match, {Math.round(d.score*100)}%)</span></div>)}</div>}
               </>
             ):(
               <>
@@ -1110,6 +1378,265 @@ function EditSheet({c,onClose,onSave,industries}){
           </div>
           <button className="btn btn-primary" onClick={doSave} style={{marginTop:8}}>{c.id?'Save Changes':'Add Company'}</button>
           <button className="btn btn-secondary" onClick={onClose} style={{marginTop:8}}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════ BATCH SCAN SHEET ═══════════════
+function BatchScanSheet({onClose,companies,onComplete}){
+  const [step,setStep]=useState('upload'); // upload | scanning | results
+  const [photoFiles,setPhotoFiles]=useState([]);
+  const [results,setResults]=useState([]); // [{photo,parsed,duplicates,selected,expanded,status:'new'|'duplicate'|'skip'}]
+  const [scanIdx,setScanIdx]=useState(0);
+  const [scanProgress,setScanProgress]=useState(0);
+  const [saving,setSaving]=useState(false);
+  const cameraRef=useRef();
+  const uploadRef=useRef();
+
+  const compressImage=(file)=>{
+    return new Promise((resolve,reject)=>{
+      if(!file.type.startsWith('image/')){reject('Not an image');return;}
+      if(file.size > MAX_PHOTO_SIZE * 5){reject('Photo too large');return;}
+      const reader=new FileReader();
+      reader.onload=ev=>{
+        const img=new Image();
+        img.onload=()=>{
+          const MAX=800;let w=img.width,h=img.height;
+          if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w*=r;h*=r}
+          const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+          canvas.getContext('2d').drawImage(img,0,0,w,h);
+          resolve(canvas.toDataURL('image/jpeg',0.7));
+        };
+        img.onerror=()=>reject('Invalid image');
+        img.src=ev.target.result;
+      };
+      reader.onerror=()=>reject('Read error');
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handlePhotos=async(e)=>{
+    const files=Array.from(e.target.files);if(!files.length)return;
+    const compressed=[];
+    for(const file of files){
+      try{const data=await compressImage(file);compressed.push(data);}catch(err){}
+    }
+    setPhotoFiles(prev=>[...prev,...compressed]);
+    e.target.value='';
+  };
+
+  const removePhoto=(idx)=>setPhotoFiles(prev=>prev.filter((_,i)=>i!==idx));
+
+  const startScan=async()=>{
+    if(!photoFiles.length) return;
+    setStep('scanning');
+    const scanResults=[];
+    for(let i=0;i<photoFiles.length;i++){
+      setScanIdx(i);setScanProgress(0);
+      try{
+        const text=await extractTextFromImage(photoFiles[i],p=>setScanProgress(Math.round(p*100)));
+        const parsed=parseBusinessCard(text);
+        const dupes=findDuplicates(parsed, companies||[]);
+        scanResults.push({
+          photo:photoFiles[i],
+          parsed,
+          duplicates:dupes,
+          selected:true,
+          expanded:false,
+          status:dupes.length>0?'duplicate':'new',
+          edited:{...parsed}
+        });
+      }catch(err){
+        scanResults.push({
+          photo:photoFiles[i],
+          parsed:{},
+          duplicates:[],
+          selected:true,
+          expanded:false,
+          status:'new',
+          edited:{}
+        });
+      }
+    }
+    setResults(scanResults);
+    setStep('results');
+  };
+
+  const toggleSelect=(idx)=>setResults(prev=>prev.map((r,i)=>i===idx?{...r,selected:!r.selected}:r));
+  const toggleExpand=(idx)=>setResults(prev=>prev.map((r,i)=>i===idx?{...r,expanded:!r.expanded}:r));
+  const updateField=(idx,key,val)=>setResults(prev=>prev.map((r,i)=>i===idx?{...r,edited:{...r.edited,[key]:val}}:r));
+  const setStatus=(idx,status)=>setResults(prev=>prev.map((r,i)=>i===idx?{...r,status,selected:status!=='skip'}:r));
+
+  const saveAll=async()=>{
+    setSaving(true);
+    let count=0;
+    for(const r of results){
+      if(!r.selected || r.status==='skip') continue;
+      const data={
+        name:r.edited.name||'',contact:'',phone:r.edited.phone||'',
+        email:r.edited.email||'',website:r.edited.website||'',
+        address:r.edited.address||'',services:r.edited.services||'',
+        industry:r.edited.industry||'',rating:0,
+        notes:r.edited.notes||'',tags:[],createdAt:Date.now()
+      };
+      if(!data.name.trim()) continue;
+      const validated=validateCompany(data);
+      if(!validated) continue;
+
+      if(r.status==='duplicate' && r.duplicates.length>0){
+        // Merge: update existing company with new fields that it's missing
+        const existing=r.duplicates[0].company;
+        const merged={...existing};
+        if(!merged.phone && validated.phone) merged.phone=validated.phone;
+        if(!merged.email && validated.email) merged.email=validated.email;
+        if(!merged.website && validated.website) merged.website=validated.website;
+        if(!merged.address && validated.address) merged.address=validated.address;
+        if(!merged.services && validated.services) merged.services=validated.services;
+        if(!merged.industry && validated.industry) merged.industry=validated.industry;
+        if(validated.notes && !merged.notes?.includes(validated.notes)) merged.notes=(merged.notes?merged.notes+'; ':'')+validated.notes;
+        await dbPut('companies',merged);
+        // Add photo to existing
+        const existPhotos=await getCompanyPhotos(existing.id);
+        await dbPut('photos',{companyId:existing.id,photos:[...existPhotos,r.photo]});
+        count++;
+      } else {
+        // New entry
+        const saved=await dbPut('companies',validated);
+        const companyId=validated.id||saved;
+        await dbPut('photos',{companyId,photos:[r.photo]});
+        count++;
+      }
+    }
+    setSaving(false);
+    onComplete(count);
+  };
+
+  const selectedCount=results.filter(r=>r.selected && r.status!=='skip').length;
+
+  return(
+    <div className="overlay" onClick={onClose}>
+      <div className="sheet batch-sheet" onClick={e=>e.stopPropagation()}>
+        <div className="sheet-handle"/>
+        <div className="sheet-header">
+          <h2>{step==='upload'?'Batch Scan':step==='scanning'?'Scanning...':'Scan Results'}</h2>
+          <button className="sheet-close" onClick={onClose}>×</button>
+        </div>
+        <div className="sheet-body">
+
+          {step==='upload'&&(
+            <>
+              <p style={{fontSize:14,color:'var(--muted)',marginBottom:12}}>Upload photos of different contractors. Each photo will be scanned and create a separate entry.</p>
+              <input ref={cameraRef} type="file" accept="image/*" capture="environment" style={{display:'none'}} onChange={handlePhotos}/>
+              <input ref={uploadRef} type="file" accept="image/*" multiple style={{display:'none'}} onChange={handlePhotos}/>
+
+              {photoFiles.length>0&&(
+                <div className="photo-gallery" style={{marginBottom:12}}>
+                  {photoFiles.map((p,i)=>(
+                    <div key={i} className="photo-thumb-wrap">
+                      <img src={p} className="photo-thumb" alt={`Photo ${i+1}`}/>
+                      <button type="button" className="photo-thumb-remove" onClick={()=>removePhoto(i)}>×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="photo-buttons" style={{marginBottom:12}}>
+                <button type="button" className="photo-btn" onClick={()=>cameraRef.current.click()}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  Take Photo
+                </button>
+                <button type="button" className="photo-btn" onClick={()=>uploadRef.current.click()}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Upload Photos
+                </button>
+              </div>
+
+              {photoFiles.length>0&&(
+                <button className="btn btn-primary" onClick={startScan}>
+                  <span style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M2 3h6v6H2z"/><path d="M16 3h6v6h-6z"/><path d="M2 15h6v6H2z"/><path d="M19 15v3a2 2 0 0 1-2 2h-3"/><path d="M15 15h6"/></svg>
+                    Scan {photoFiles.length} Photo{photoFiles.length>1?'s':''}
+                  </span>
+                </button>
+              )}
+            </>
+          )}
+
+          {step==='scanning'&&(
+            <div style={{textAlign:'center',padding:'20px 0'}}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent2)" strokeWidth="1.5" style={{animation:'spin 1s linear infinite',marginBottom:12}}>
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+              </svg>
+              <div style={{fontSize:16,fontWeight:600,marginBottom:4}}>Scanning photo {scanIdx+1} of {photoFiles.length}</div>
+              <div style={{fontSize:13,color:'var(--muted)',marginBottom:12}}>Extracting text... {scanProgress}%</div>
+              <div className="ocr-progress" style={{maxWidth:300,margin:'0 auto'}}>
+                <div className="ocr-progress-fill" style={{width:scanProgress+'%'}}/>
+              </div>
+            </div>
+          )}
+
+          {step==='results'&&(
+            <>
+              <div style={{fontSize:13,color:'var(--muted)',marginBottom:12}}>
+                Found {results.length} contractor{results.length>1?'s':''} — {selectedCount} selected to save
+              </div>
+
+              {results.map((r,idx)=>(
+                <div key={idx} className={`batch-item ${r.status==='skip'?'batch-skip':''}`}>
+                  <div className="batch-item-header" onClick={()=>toggleExpand(idx)}>
+                    <input type="checkbox" checked={r.selected && r.status!=='skip'} onChange={()=>toggleSelect(idx)} onClick={e=>e.stopPropagation()} style={{width:18,height:18,flexShrink:0}}/>
+                    <img src={r.photo} className="batch-thumb" alt=""/>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontWeight:600,fontSize:14,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{r.edited.name||'Unknown Company'}</div>
+                      <div style={{fontSize:12,color:'var(--muted)'}}>{r.edited.phone||'No phone'}</div>
+                    </div>
+                    {r.status==='duplicate'&&<span className="batch-badge batch-badge-warn">Duplicate</span>}
+                    {r.status==='new'&&<span className="batch-badge batch-badge-new">New</span>}
+                    {r.status==='skip'&&<span className="batch-badge batch-badge-skip">Skip</span>}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16" style={{flexShrink:0,transform:r.expanded?'rotate(180deg)':'',transition:'transform .15s'}}><polyline points="6 9 12 15 18 9"/></svg>
+                  </div>
+
+                  {r.expanded&&(
+                    <div className="batch-item-body">
+                      {r.duplicates.length>0&&(
+                        <div className="duplicate-bar" style={{marginBottom:8}}>
+                          {r.duplicates.map((d,di)=>(
+                            <div key={di} className="duplicate-item">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                              <span>Matches: <strong>{d.company.name}</strong> ({d.matchType}, {Math.round(d.score*100)}%)</span>
+                            </div>
+                          ))}
+                          <div style={{display:'flex',gap:6,marginTop:6}}>
+                            <button className="batch-action-btn" onClick={()=>setStatus(idx,'duplicate')} style={r.status==='duplicate'?{background:'var(--accent2)',color:'#fff'}:{}}>Merge</button>
+                            <button className="batch-action-btn" onClick={()=>setStatus(idx,'new')} style={r.status==='new'?{background:'var(--accent2)',color:'#fff'}:{}}>Add New</button>
+                            <button className="batch-action-btn" onClick={()=>setStatus(idx,'skip')} style={r.status==='skip'?{background:'var(--red)',color:'#fff'}:{}}>Skip</button>
+                          </div>
+                        </div>
+                      )}
+                      <div className="field"><label>Name</label><input value={r.edited.name||''} onChange={e=>updateField(idx,'name',e.target.value)} placeholder="Company name"/></div>
+                      <div className="row2">
+                        <div className="field"><label>Phone</label><input value={r.edited.phone||''} onChange={e=>updateField(idx,'phone',e.target.value)}/></div>
+                        <div className="field"><label>Email</label><input value={r.edited.email||''} onChange={e=>updateField(idx,'email',e.target.value)}/></div>
+                      </div>
+                      <div className="row2">
+                        <div className="field"><label>Website</label><input value={r.edited.website||''} onChange={e=>updateField(idx,'website',e.target.value)}/></div>
+                        <div className="field"><label>Industry</label><input value={r.edited.industry||''} onChange={e=>updateField(idx,'industry',e.target.value)}/></div>
+                      </div>
+                      <div className="field"><label>Services</label><textarea value={r.edited.services||''} onChange={e=>updateField(idx,'services',e.target.value)} rows={2}/></div>
+                      <div className="field"><label>Notes</label><input value={r.edited.notes||''} onChange={e=>updateField(idx,'notes',e.target.value)}/></div>
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              <button className="btn btn-primary" onClick={saveAll} disabled={saving||selectedCount===0} style={{marginTop:12}}>
+                {saving?'Saving...':`Save ${selectedCount} Contractor${selectedCount>1?'s':''}`}
+              </button>
+              <button className="btn btn-secondary" onClick={()=>{setStep('upload');setResults([]);}} style={{marginTop:8}}>Back</button>
+            </>
+          )}
         </div>
       </div>
     </div>
