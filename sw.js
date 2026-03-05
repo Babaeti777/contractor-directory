@@ -1,4 +1,4 @@
-const CACHE_NAME = 'contractor-dir-v2';
+const CACHE_NAME = 'contractor-dir-v3';
 const ASSETS = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -14,7 +14,7 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  if (e.request.url.includes('cdnjs.cloudflare.com') || e.request.url.includes('fonts.googleapis.com') || e.request.url.includes('fonts.gstatic.com')) {
+  if (e.request.url.includes('cdnjs.cloudflare.com') || e.request.url.includes('cdn.jsdelivr.net') || e.request.url.includes('fonts.googleapis.com') || e.request.url.includes('fonts.gstatic.com')) {
     e.respondWith(caches.open(CACHE_NAME).then(cache =>
       cache.match(e.request).then(r => r || fetch(e.request).then(resp => { cache.put(e.request, resp.clone()); return resp; }))
     ));
