@@ -490,9 +490,7 @@ function App(){
           <input placeholder="Search name, service, tag, location..." value={search} onChange={e=>setSearch(e.target.value)}/>
         </div>
 
-        <div className="filter-row">
-          {industries.map(i=><div key={i} className={`chip ${filter===i?'active':''}`} onClick={()=>setFilter(filter===i?'All':i)}>{i==='All'?`All (${companies.length})`:i}</div>)}
-        </div>
+        <IndustryFilter industries={industries} filter={filter} setFilter={setFilter} companies={companies}/>
 
         {filtered.length===0?(
           <div className="empty">
