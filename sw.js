@@ -1,9 +1,10 @@
-const CACHE_NAME = 'contractor-dir-v2';
+const CACHE_NAME = 'contractor-dir-v3';
 const LOCAL_ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 const CDN_ASSETS = [
   'https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js'
+  'https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js',
+  'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'
 ];
 
 self.addEventListener('install', e => {
@@ -39,6 +40,12 @@ self.addEventListener('fetch', e => {
     );
     return;
   }
-  // Local resources: cache-first, then network
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+  // Local resources: network-first, fall back to cache (ensures updates are picked up)
+  e.respondWith(
+    fetch(e.request).then(resp => {
+      const clone = resp.clone();
+      caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+      return resp;
+    }).catch(() => caches.match(e.request))
+  );
 });
