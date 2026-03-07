@@ -359,7 +359,8 @@ const INDUSTRY_GROUPS={
 };
 
 // ═══════════════ GOOGLE CONTACTS ═══════════════
-const GOOGLE_CLIENT_ID=''; // Set your Google Cloud OAuth Client ID here
+function getGoogleClientId(){return localStorage.getItem('google_client_id')||''}
+function setGoogleClientId(id){localStorage.setItem('google_client_id',id)}
 const GOOGLE_SCOPES='https://www.googleapis.com/auth/contacts';
 function getGoogleToken(){try{return JSON.parse(localStorage.getItem('google_token'))}catch(e){return null}}
 function setGoogleToken(t){localStorage.setItem('google_token',JSON.stringify(t))}
@@ -630,6 +631,8 @@ function App(){
   const [darkMode,setDarkMode]=useState(getStoredTheme()==='dark');
   const [isLoggedIn,setIsLoggedIn]=useState(()=>getAuthState().isLoggedIn);
   const [googleToken,setGoogleTokenState]=useState(()=>getGoogleToken());
+  const [googleClientId,setGoogleClientIdState]=useState(getGoogleClientId);
+  const [showClientIdInput,setShowClientIdInput]=useState(false);
   const [googleSyncing,setGoogleSyncing]=useState(false);
   const [googleSyncProgress,setGoogleSyncProgress]=useState('');
 
@@ -655,9 +658,10 @@ function App(){
 
   // Google OAuth handlers
   const handleGoogleSignIn=useCallback(()=>{
-    if(!GOOGLE_CLIENT_ID){flash('Google Client ID not configured');setShowMenu(false);return}
+    const cid=getGoogleClientId();
+    if(!cid){flash('Google Client ID not configured — set it in the menu');setShowMenu(false);return}
     try{
-      const client=google.accounts.oauth2.initTokenClient({client_id:GOOGLE_CLIENT_ID,scope:GOOGLE_SCOPES,
+      const client=google.accounts.oauth2.initTokenClient({client_id:cid,scope:GOOGLE_SCOPES,
         callback:response=>{if(response.access_token){const t={access_token:response.access_token,expires_at:Date.now()+response.expires_in*1000};setGoogleToken(t);setGoogleTokenState(t);flash('Connected to Google Contacts')}}
       });client.requestAccessToken();
     }catch(e){flash('Google sign-in failed')}
@@ -866,6 +870,8 @@ function App(){
             ):(
               <div className="menu-item" onClick={handleGoogleSignIn}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Connect Google Contacts</div>
             )}
+            <div className="menu-item" onClick={()=>setShowClientIdInput(!showClientIdInput)}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Google Client ID {googleClientId?'✓':''}</div>
+            {showClientIdInput&&<div style={{padding:'8px 12px'}}><input type="text" value={googleClientId} onChange={e=>{const v=e.target.value;setGoogleClientIdState(v);setGoogleClientId(v)}} placeholder="Paste your Google Client ID" style={{width:'100%',padding:'6px 8px',fontSize:'12px',border:'1px solid var(--border)',borderRadius:'6px',background:'var(--bg)',color:'var(--fg)',boxSizing:'border-box'}}/><div style={{fontSize:'11px',color:'var(--muted)',marginTop:'4px'}}>From Google Cloud Console → OAuth 2.0 Client IDs</div></div>}
             <div className="menu-divider"/>
             <div className="menu-item" style={{color:'var(--red)'}} onClick={resetToSeed}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>Reset to Original Data</div>
             <div className="menu-divider"/>
