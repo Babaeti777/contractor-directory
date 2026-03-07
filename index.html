@@ -6,777 +6,177 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1e3a5f">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://apis.google.com https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://cdn.jsdelivr.net https://people.googleapis.com https://www.googleapis.com https://accounts.google.com https://oauth2.googleapis.com; font-src 'self'; worker-src 'self' blob: https://cdn.jsdelivr.net; frame-src https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
-<meta name="referrer" content="no-referrer">
-<meta name="X-Content-Type-Options" content="nosniff">
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <title>1 Oak Builders — Contractor Directory</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-/* ── Theme Variables ── */
-:root{
-  --bg:#f0f2f5;--surface:#ffffff;--surface-raised:#ffffff;--border:#e2e5ea;
-  --text:#1a1d23;--text-secondary:#4b5563;--muted:#6b7280;
-  --accent:#1e3a5f;--accent2:#2563eb;--accent-light:#e8f0fe;--accent-glow:rgba(37,99,235,.12);
-  --green:#059669;--yellow:#d97706;--red:#dc2626;--star:#f59e0b;
-  --radius:12px;--shadow-sm:0 1px 3px rgba(0,0,0,.06);--shadow-md:0 4px 12px rgba(0,0,0,.08);--shadow-lg:0 8px 28px rgba(0,0,0,.12);
-  --header-gradient:linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%);
-  --card-hover-shadow:0 6px 20px rgba(0,0,0,.1);
-  --transition-fast:.15s ease;--transition-normal:.25s ease;
-  color-scheme: light;
-}
-
-[data-theme="dark"]{
-  --bg:#0f1117;--surface:#1a1d27;--surface-raised:#222633;--border:#2d3140;
-  --text:#e8eaf0;--text-secondary:#9ca3af;--muted:#7b8294;
-  --accent:#3b82f6;--accent2:#60a5fa;--accent-light:#1e293b;--accent-glow:rgba(96,165,250,.15);
-  --green:#34d399;--yellow:#fbbf24;--red:#f87171;--star:#fbbf24;
-  --shadow-sm:0 1px 3px rgba(0,0,0,.3);--shadow-md:0 4px 12px rgba(0,0,0,.4);--shadow-lg:0 8px 28px rgba(0,0,0,.5);
-  --header-gradient:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);
-  --card-hover-shadow:0 6px 20px rgba(0,0,0,.4);
-  color-scheme: dark;
-}
-
+:root{--bg:#f5f6f8;--surface:#fff;--border:#e0e3e8;--text:#1a1d23;--muted:#6b7280;--accent:#1e3a5f;--accent2:#2563eb;--accent-light:#e8f0fe;--green:#059669;--yellow:#d97706;--red:#dc2626;--star:#f59e0b;--radius:10px}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);-webkit-tap-highlight-color:transparent;transition:background var(--transition-normal),color var(--transition-normal)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);-webkit-tap-highlight-color:transparent}
 
 /* ── Layout ── */
 .app{min-height:100vh;display:flex;flex-direction:column}
-.header{background:var(--header-gradient);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(0,0,0,.15)}
-.header h1{font-size:17px;font-weight:700;flex:1;letter-spacing:-.2px}
-.header-btn{background:rgba(255,255,255,.12);border:none;color:#fff;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--transition-fast);backdrop-filter:blur(4px)}
-.header-btn:hover{background:rgba(255,255,255,.22)}
-.header-btn:active{background:rgba(255,255,255,.3);transform:scale(.94)}
+.header{background:var(--accent);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
+.header h1{font-size:17px;font-weight:700;flex:1}
+.header-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.header-btn:active{background:rgba(255,255,255,.25)}
 .header-btn svg{width:20px;height:20px}
 
 .body-wrap{flex:1;padding:12px;max-width:900px;margin:0 auto;width:100%}
 
 /* ── Search ── */
 .search-bar{position:relative;margin-bottom:12px}
-.search-bar input{width:100%;padding:12px 14px 12px 42px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:15px;background:var(--surface);color:var(--text);outline:none;transition:all var(--transition-fast);box-shadow:var(--shadow-sm)}
-.search-bar input::placeholder{color:var(--muted)}
-.search-bar input:focus{border-color:var(--accent2);box-shadow:0 0 0 3px var(--accent-glow),var(--shadow-sm)}
-.search-bar svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted)}
+.search-bar input{width:100%;padding:10px 12px 10px 38px;border:1px solid var(--border);border-radius:var(--radius);font-size:15px;background:var(--surface);outline:none}
+.search-bar input:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.search-bar svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted)}
 
 /* ── Filters ── */
 .filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .filter-row::-webkit-scrollbar{display:none}
-.chip{flex-shrink:0;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:500;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;white-space:nowrap;transition:all var(--transition-fast);box-shadow:var(--shadow-sm)}
-.chip:hover{border-color:var(--accent2);color:var(--accent2)}
-.chip.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 8px rgba(30,58,95,.3)}
+.chip{flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .15s}
+.chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 
 /* ── Stats ── */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
-.stat{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow-sm);transition:all var(--transition-fast);position:relative;overflow:hidden}
-.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--header-gradient);opacity:0;transition:opacity var(--transition-fast)}
-.stat:hover::before{opacity:1}
-.stat-n{font-size:22px;font-weight:700;color:var(--accent2);letter-spacing:-.5px}
-.stat-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-top:2px}
+.stats{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none}
+.stats::-webkit-scrollbar{display:none}
+.stat{flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;min-width:100px}
+.stat-n{font-size:22px;font-weight:700;color:var(--accent)}
+.stat-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:600}
 
 /* ── Cards ── */
-.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;cursor:pointer;transition:all var(--transition-fast);box-shadow:var(--shadow-sm);position:relative}
-.card:hover{box-shadow:var(--card-hover-shadow);border-color:var(--accent2);transform:translateY(-1px)}
-.card:active{transform:translateY(0);box-shadow:var(--shadow-sm)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:8px;cursor:pointer;transition:box-shadow .15s}
+.card:active{box-shadow:0 2px 8px rgba(0,0,0,.08)}
 .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-.card-name{font-size:15px;font-weight:600;line-height:1.3;color:var(--text)}
-.card-industry{font-size:11px;padding:3px 10px;border-radius:6px;background:var(--accent-light);color:var(--accent2);font-weight:600;white-space:nowrap;flex-shrink:0;letter-spacing:.2px}
+.card-name{font-size:15px;font-weight:600;line-height:1.3}
+.card-industry{font-size:11px;padding:2px 8px;border-radius:4px;background:#f0f1f3;color:var(--muted);font-weight:500;white-space:nowrap;flex-shrink:0}
 .card-detail{font-size:13px;color:var(--muted);margin-top:4px;display:flex;align-items:center;gap:6px}
 .card-detail svg{width:14px;height:14px;flex-shrink:0}
-.card-services{font-size:12px;color:var(--text-secondary);margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5}
+.card-services{font-size:12px;color:var(--muted);margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
 .card-tags{display:flex;gap:4px;flex-wrap:wrap}
-.tag{font-size:10px;padding:3px 8px;border-radius:5px;background:var(--accent-light);color:var(--accent2);font-weight:500;transition:all var(--transition-fast)}
-.stars{display:flex;gap:2px}
-.star-icon{width:16px;height:16px;color:var(--border);cursor:pointer;transition:color var(--transition-fast),transform var(--transition-fast)}
-.star-icon:hover{transform:scale(1.2)}
+.tag{font-size:10px;padding:2px 6px;border-radius:3px;background:#e8ecf0;color:var(--muted)}
+.stars{display:flex;gap:1px}
+.star-icon{width:16px;height:16px;color:#d1d5db;cursor:pointer}
 .star-icon.filled{color:var(--star)}
 
 /* ── Photo thumbnail in card ── */
-.card-photo{width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--accent-light);margin-left:8px;box-shadow:var(--shadow-sm)}
+.card-photo{width:48px;height:48px;border-radius:6px;object-fit:cover;flex-shrink:0;background:#e8ecf0;margin-left:8px}
 
 /* ── FAB ── */
-.fab{position:fixed;bottom:24px;right:16px;width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;border:none;box-shadow:0 4px 20px rgba(37,99,235,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:40;transition:all var(--transition-fast)}
-.fab:hover{box-shadow:0 6px 28px rgba(37,99,235,.55);transform:translateY(-2px)}
-.fab:active{transform:scale(.92) translateY(0)}
+.fab{position:fixed;bottom:24px;right:16px;width:56px;height:56px;border-radius:28px;background:var(--accent2);color:#fff;border:none;box-shadow:0 4px 16px rgba(37,99,235,.35);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:40;transition:transform .15s}
+.fab:active{transform:scale(.92)}
 .fab svg{width:26px;height:26px}
 
 /* ── Bottom Sheet / Modal ── */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);animation:fadeOverlay .2s ease-out}
-@keyframes fadeOverlay{from{opacity:0}to{opacity:1}}
-.sheet{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;animation:slideUp .3s cubic-bezier(.16,1,.3,1)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);border-radius:16px 16px 0 0;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;animation:slideUp .25s ease-out}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.sheet-handle{width:40px;height:4px;border-radius:2px;background:var(--border);margin:10px auto 4px}
+.sheet-handle{width:36px;height:4px;border-radius:2px;background:#d1d5db;margin:8px auto 4px}
 .sheet-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 4px}
-.sheet-header h2{font-size:18px;font-weight:700;color:var(--text)}
-.sheet-close{width:32px;height:32px;border-radius:10px;border:none;background:var(--accent-light);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--muted);transition:all var(--transition-fast)}
-.sheet-close:hover{background:var(--border);color:var(--text)}
+.sheet-header h2{font-size:17px;font-weight:700}
+.sheet-close{width:32px;height:32px;border-radius:8px;border:none;background:#f1f3f5;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--muted)}
 .sheet-body{padding:8px 16px 24px}
 
 .field{margin-bottom:12px}
-.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
-.field input,.field textarea,.field select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit;outline:none;background:var(--surface);color:var(--text);transition:all var(--transition-fast);-webkit-appearance:none}
-.field input::placeholder,.field textarea::placeholder{color:var(--muted)}
-.field input:focus,.field textarea:focus{border-color:var(--accent2);box-shadow:0 0 0 3px var(--accent-glow)}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px}
+.field input,.field textarea,.field select{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:15px;font-family:inherit;outline:none;-webkit-appearance:none}
+.field input:focus,.field textarea:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
 .field textarea{resize:vertical;min-height:60px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
-.btn{padding:12px 20px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:all var(--transition-fast);width:100%}
-.btn:hover{transform:translateY(-1px)}
-.btn:active{transform:scale(.97) translateY(0)}
-.btn-primary{background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.3)}
-.btn-primary:hover{box-shadow:0 4px 14px rgba(37,99,235,.4)}
-.btn-secondary{background:var(--accent-light);color:var(--text)}
-.btn-danger{background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;box-shadow:0 2px 8px rgba(220,38,38,.25)}
+.btn{padding:12px 20px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:all .15s;width:100%}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-primary{background:var(--accent2);color:#fff}
+.btn-secondary{background:#f1f3f5;color:var(--text)}
+.btn-danger{background:var(--red);color:#fff}
 .btn-row{display:flex;gap:8px;margin-top:12px}
 
 /* ── Photo upload area ── */
-.photo-area{border:2px dashed var(--border);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:all var(--transition-fast);margin-bottom:12px;background:var(--bg)}
-.photo-area:hover,.photo-area.active{border-color:var(--accent2);background:var(--accent-light)}
+.photo-area{border:2px dashed var(--border);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:border-color .15s;margin-bottom:12px}
+.photo-area:hover,.photo-area.active{border-color:var(--accent2)}
 .photo-area svg{width:32px;height:32px;color:var(--muted);margin-bottom:6px}
 .photo-area p{font-size:13px;color:var(--muted)}
-.photo-area .hint{font-size:11px;color:var(--muted);margin-top:2px;opacity:.7}
+.photo-area .hint{font-size:11px;color:#b0b5be;margin-top:2px}
 .photo-preview{width:100%;max-height:200px;object-fit:contain;border-radius:8px;margin-top:8px}
 
 /* ── Detail view ── */
-.detail-photo{width:100%;max-height:220px;object-fit:contain;border-radius:10px;margin-bottom:12px;background:var(--bg)}
-.detail-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
-.detail-row:last-of-type{border-bottom:none}
-.detail-row svg{width:18px;height:18px;color:var(--accent2);flex-shrink:0;margin-top:1px}
-.detail-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:600}
-.detail-value{font-size:14px;margin-top:2px;color:var(--text);line-height:1.5}
-.detail-value a{color:var(--accent2);text-decoration:none;font-weight:500}
-.detail-value a:hover{text-decoration:underline}
+.detail-photo{width:100%;max-height:220px;object-fit:contain;border-radius:8px;margin-bottom:12px;background:#f0f1f3}
+.detail-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #f0f1f3}
+.detail-row svg{width:18px;height:18px;color:var(--muted);flex-shrink:0;margin-top:1px}
+.detail-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;font-weight:600}
+.detail-value{font-size:14px;margin-top:1px}
+.detail-value a{color:var(--accent2);text-decoration:none}
 
 /* ── Toast ── */
-.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:12px 24px;border-radius:12px;font-size:14px;font-weight:500;z-index:200;box-shadow:var(--shadow-lg);animation:toastIn .3s cubic-bezier(.16,1,.3,1)}
-@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(10px) scale(.95)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1a1d23;color:#fff;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:500;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 
 /* ── Empty state ── */
 .empty{text-align:center;padding:48px 20px;color:var(--muted)}
 .empty h3{font-size:16px;color:var(--text);margin-bottom:4px}
-.empty svg{width:48px;height:48px;color:var(--border);margin-bottom:12px}
+.empty svg{width:48px;height:48px;color:#d1d5db;margin-bottom:12px}
 
 /* ── Export menu ── */
-.menu-overlay{position:fixed;inset:0;z-index:90}
-.menu{position:absolute;top:48px;right:8px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;box-shadow:var(--shadow-lg);min-width:200px;z-index:91;overflow:hidden;animation:menuIn .15s ease-out}
-@keyframes menuIn{from{opacity:0;transform:translateY(-4px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
-.menu-item{padding:12px 16px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--text);transition:background var(--transition-fast)}
-.menu-item:hover{background:var(--accent-light)}
-.menu-item:active{background:var(--border)}
+.menu-overlay{position:fixed;inset:0;z-index:110}
+.menu{position:absolute;top:48px;right:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.14);min-width:220px;z-index:111;overflow:hidden}
+.menu-item{padding:12px 16px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--text)}
+.menu-item:active{background:#f6f7f9}
 .menu-divider{height:1px;background:var(--border)}
 
-/* ── Security badge ── */
-.security-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;background:rgba(5,150,105,.12);color:var(--green);margin-left:8px;letter-spacing:.3px}
+/* ── Confirm dialog ── */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px}
+.confirm-box{background:var(--surface);border-radius:14px;padding:24px;max-width:340px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.confirm-box h3{font-size:16px;margin-bottom:6px}
+.confirm-box p{font-size:14px;color:var(--muted);margin-bottom:16px;line-height:1.5}
 
-/* ── Login Screen ── */
-.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:20px}
-.login-card{background:var(--surface);border:1.5px solid var(--border);border-radius:20px;padding:40px 32px;width:100%;max-width:380px;box-shadow:var(--shadow-lg);text-align:center;animation:fadeIn .4s ease-out}
-@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.login-icon{width:64px;height:64px;margin:0 auto 16px;background:var(--header-gradient);border-radius:16px;display:flex;align-items:center;justify-content:center}
-.login-icon svg{width:32px;height:32px;color:#fff}
-.login-card h2{font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px}
-.login-card .login-sub{font-size:14px;color:var(--muted);margin-bottom:24px}
-.login-card .login-input{width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:12px;font-size:16px;background:var(--surface);color:var(--text);outline:none;text-align:center;letter-spacing:4px;font-weight:600;transition:all var(--transition-fast)}
-.login-card .login-input::placeholder{letter-spacing:normal;font-weight:400;color:var(--muted)}
-.login-card .login-input:focus{border-color:var(--accent2);box-shadow:0 0 0 3px var(--accent-glow)}
-.login-card .login-error{color:var(--red);font-size:13px;margin-top:8px;min-height:20px;font-weight:500}
-.login-card .login-btn{width:100%;padding:14px;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;border:none;margin-top:16px;transition:all var(--transition-fast);background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.3)}
-.login-card .login-btn:hover{box-shadow:0 4px 14px rgba(37,99,235,.4);transform:translateY(-1px)}
-.login-card .login-btn:active{transform:scale(.97)}
-.login-card .login-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.login-setup-note{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.4}
-.login-theme-btn{position:absolute;top:16px;right:16px;background:var(--surface);border:1.5px solid var(--border);width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:all var(--transition-fast)}
-.login-theme-btn:hover{border-color:var(--accent2);color:var(--accent2)}
-.login-lock-hint{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--muted);margin-top:12px}
+/* ── Backup banner ── */
+.backup-banner{background:var(--accent-light);border:1px solid #c5d5f0;border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--accent)}
+.backup-banner button{padding:4px 12px;border-radius:6px;border:1px solid var(--accent2);background:var(--accent2);color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.backup-banner .dismiss{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 4px}
 
-/* ── Photo buttons ── */
-.photo-buttons{display:flex;gap:8px;margin-top:10px}
-.photo-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text);transition:all var(--transition-fast)}
-.photo-btn:hover{border-color:var(--accent2);color:var(--accent2);background:var(--accent-light)}
-.photo-btn:active{transform:scale(.97)}
-.photo-btn svg{width:18px;height:18px}
-
-/* ── Photo Gallery ── */
-.photo-gallery{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.photo-gallery::-webkit-scrollbar{display:none}
-.photo-thumb-wrap{position:relative;flex-shrink:0}
-.photo-thumb{width:80px;height:80px;border-radius:8px;object-fit:cover;border:1.5px solid var(--border);cursor:pointer;transition:all var(--transition-fast)}
-.photo-thumb:hover{border-color:var(--accent2)}
-.photo-thumb.active{border-color:var(--accent2);box-shadow:0 0 0 2px var(--accent-glow)}
-.photo-thumb-remove{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;border:2px solid var(--surface);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
-.photo-count{font-size:11px;color:var(--muted);text-align:center;margin-top:4px}
-
-/* ── OCR ── */
-.ocr-bar{display:flex;align-items:center;gap:8px;margin:8px 0;padding:10px 12px;border-radius:10px;background:var(--accent-light);border:1px solid var(--border)}
-.ocr-bar .ocr-status{flex:1;font-size:13px;color:var(--text-secondary)}
-.ocr-bar .ocr-progress{height:3px;background:var(--border);border-radius:2px;flex:1;overflow:hidden}
-.ocr-bar .ocr-progress-fill{height:100%;background:var(--accent2);border-radius:2px;transition:width .3s}
-.ocr-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--accent2);background:transparent;color:var(--accent2);transition:all var(--transition-fast);white-space:nowrap}
-.ocr-btn:hover{background:var(--accent2);color:#fff}
-.ocr-btn:disabled{opacity:.5;cursor:not-allowed}
-.ocr-btn svg{width:16px;height:16px}
-
-/* ── Detail photo gallery ── */
-.detail-gallery{display:flex;gap:8px;overflow-x:auto;padding:4px 0 12px;scrollbar-width:none}
-.detail-gallery::-webkit-scrollbar{display:none}
-.detail-gallery img{height:140px;border-radius:10px;object-fit:cover;cursor:pointer;border:1.5px solid var(--border);transition:all var(--transition-fast);flex-shrink:0}
-.detail-gallery img:hover{border-color:var(--accent2)}
-.photo-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);animation:fadeOverlay .2s ease-out}
-.photo-lightbox img{max-width:100%;max-height:90vh;border-radius:12px;object-fit:contain}
-.photo-lightbox-close{position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-
-/* ── Secondary FAB (batch scan) ── */
-.fab.fab-secondary{background:linear-gradient(135deg,#059669,#34d399);box-shadow:0 4px 20px rgba(5,150,105,.4);border-radius:14px;width:48px;height:48px}
-.fab.fab-secondary:hover{box-shadow:0 6px 28px rgba(5,150,105,.55)}
-.fab.fab-secondary svg{width:22px;height:22px}
-
-/* ── Duplicate Detection Bar ── */
-.duplicate-bar{border:1.5px solid var(--yellow);border-radius:10px;padding:8px 12px;background:rgba(217,119,6,.06);margin-top:8px}
-.duplicate-item{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--yellow)}
-.duplicate-item strong{color:var(--text)}
-
-/* ── Batch Scan ── */
-.batch-sheet{max-height:95vh}
-.batch-item{border:1.5px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden;transition:all var(--transition-fast)}
-.batch-item.batch-skip{opacity:.45}
-.batch-item-header{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;transition:background var(--transition-fast)}
-.batch-item-header:hover{background:var(--accent-light)}
-.batch-thumb{width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0}
-.batch-badge{font-size:11px;padding:3px 8px;border-radius:6px;font-weight:600;flex-shrink:0;white-space:nowrap}
-.batch-badge-new{background:rgba(5,150,105,.1);color:var(--green)}
-.batch-badge-warn{background:rgba(217,119,6,.1);color:var(--yellow)}
-.batch-badge-skip{background:rgba(107,114,128,.1);color:var(--muted)}
-.batch-item-body{padding:8px 12px 12px;border-top:1px solid var(--border);background:var(--bg)}
-.batch-action-btn{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text);transition:all var(--transition-fast)}
-.batch-action-btn:hover{border-color:var(--accent2)}
-
-/* ── Industry Filter Dropdown ── */
-.industry-filter{position:relative;margin-bottom:12px}
-.industry-filter-btn{width:100%;display:flex;align-items:center;gap:8px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);font-size:14px;cursor:pointer;transition:all var(--transition-fast);box-shadow:var(--shadow-sm)}
-.industry-filter-btn:hover{border-color:var(--accent2)}
-.industry-filter-btn.active{border-color:var(--accent2);box-shadow:0 0 0 3px var(--accent-glow)}
-.industry-filter-btn svg{width:16px;height:16px;color:var(--muted);flex-shrink:0}
-.industry-filter-btn .filter-label{flex:1;text-align:left}
-.industry-filter-btn .filter-count{font-size:12px;color:var(--muted);font-weight:500}
-.industry-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-lg);z-index:60;max-height:360px;overflow-y:auto;animation:menuIn .15s ease-out}
-.industry-dropdown-search{position:sticky;top:0;padding:8px;background:var(--surface);border-bottom:1px solid var(--border);z-index:1}
-.industry-dropdown-search input{width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg);color:var(--text);outline:none}
-.industry-dropdown-search input:focus{border-color:var(--accent2)}
-.industry-group-label{padding:6px 12px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;background:var(--bg);position:sticky;top:40px}
-.industry-option{padding:9px 12px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text);transition:background var(--transition-fast)}
-.industry-option:hover{background:var(--accent-light)}
-.industry-option.selected{background:var(--accent-light);color:var(--accent2);font-weight:600}
-.industry-option .option-count{margin-left:auto;font-size:11px;color:var(--muted);font-weight:500}
-.industry-clear{padding:8px 12px;font-size:12px;color:var(--accent2);cursor:pointer;text-align:center;border-top:1px solid var(--border);font-weight:600}
-.industry-clear:hover{background:var(--accent-light)}
-
-/* ── Google Sync ── */
-.google-sync-btn{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text);transition:all var(--transition-fast);width:100%}
-.google-sync-btn:hover{border-color:var(--accent2);background:var(--accent-light)}
-.google-sync-btn svg{width:18px;height:18px;flex-shrink:0}
-.google-sync-status{font-size:12px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:6px}
-.google-sync-status.connected{color:var(--green)}
-
-/* ── Scrollbar ── */
-::-webkit-scrollbar{width:6px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-::-webkit-scrollbar-thumb:hover{background:var(--muted)}
-
-/* ── Stats responsive ── */
-@media(max-width:480px){
-  .stats{grid-template-columns:repeat(2,1fr)}
-}
+/* ── Error boundary ── */
+.error-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;text-align:center;color:var(--text)}
+.error-screen h2{font-size:20px;margin-bottom:8px}
+.error-screen p{font-size:14px;color:var(--muted);margin-bottom:20px;max-width:400px;line-height:1.5}
 
 /* ── Desktop tweaks ── */
 @media(min-width:640px){
   .body-wrap{padding:20px}
   .card{padding:16px}
   .card-name{font-size:16px}
-  .header{padding:16px 20px}
-  .header h1{font-size:18px}
 }
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const {useState,useEffect,useMemo,useCallback,useRef} = React;
+const {useState,useEffect,useMemo,useCallback,useRef,Component} = React;
 
-// ═══════════════ SECURITY: Input Sanitization ═══════════════
-const sanitizeHTML = (str) => {
-  if (typeof str !== 'string') return '';
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-};
+// ═══════════════ APP VERSION ═══════════════
+const APP_VERSION = '2.0.0';
+const BACKUP_INTERVAL_DAYS = 7;
 
-const sanitizeInput = (str) => {
-  if (typeof str !== 'string') return '';
-  return str.replace(/<[^>]*>/g, '').replace(/[<>'"]/g, (c) => {
-    const map = {'<':'&lt;','>':'&gt;',"'":"&#39;",'"':'&quot;'};
-    return map[c] || c;
-  }).trim();
-};
-
-const sanitizeURL = (url) => {
-  if (typeof url !== 'string') return '';
-  const cleaned = url.trim();
-  if (/^(javascript|data|vbscript):/i.test(cleaned)) return '';
-  return cleaned;
-};
-
-const sanitizePhone = (phone) => {
-  if (typeof phone !== 'string') return '';
-  return phone.replace(/[^0-9+\-().\s]/g, '').trim();
-};
-
-const sanitizeEmail = (email) => {
-  if (typeof email !== 'string') return '';
-  const cleaned = email.trim().toLowerCase();
-  if (cleaned && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleaned)) return cleaned;
-  return cleaned;
-};
-
-const validateCompany = (company) => {
-  if (!company || typeof company !== 'object') return null;
-  return {
-    ...company,
-    name: (company.name || '').slice(0, 200),
-    contact: (company.contact || '').slice(0, 200),
-    phone: sanitizePhone(company.phone || ''),
-    email: sanitizeEmail(company.email || ''),
-    website: sanitizeURL(company.website || '').slice(0, 500),
-    address: (company.address || '').slice(0, 500),
-    services: (company.services || '').slice(0, 2000),
-    industry: (company.industry || '').slice(0, 100),
-    rating: Math.max(0, Math.min(5, parseInt(company.rating) || 0)),
-    notes: (company.notes || '').slice(0, 5000),
-    tags: Array.isArray(company.tags)
-      ? company.tags.filter(t => typeof t === 'string').map(t => t.slice(0, 50)).slice(0, 20)
-      : []
-  };
-};
-
-const MAX_IMPORT_SIZE = 10 * 1024 * 1024; // 10MB limit
-const MAX_IMPORT_COUNT = 1000;
-const MAX_PHOTO_SIZE = 2 * 1024 * 1024; // 2MB limit for photos
-
-// ═══════════════ SECURITY: Password Hashing ═══════════════
-async function hashPassword(password){
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + '_1oak_salt_2024');
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes inactivity timeout
-
-function getAuthState(){
-  try {
-    const hasPassword = !!localStorage.getItem('app_password_hash');
-    const session = localStorage.getItem('app_session');
-    if(!hasPassword) return { hasPassword: false, isLoggedIn: false };
-    if(!session) return { hasPassword: true, isLoggedIn: false };
-    const parsed = JSON.parse(session);
-    if(Date.now() - parsed.lastActive > SESSION_TIMEOUT){
-      localStorage.removeItem('app_session');
-      return { hasPassword: true, isLoggedIn: false };
-    }
-    return { hasPassword: true, isLoggedIn: true };
-  } catch(e) { return { hasPassword: false, isLoggedIn: false }; }
-}
-
-function setSession(){
-  try { localStorage.setItem('app_session', JSON.stringify({ lastActive: Date.now() })); } catch(e){}
-}
-
-function refreshSession(){
-  try {
-    const session = localStorage.getItem('app_session');
-    if(session){ localStorage.setItem('app_session', JSON.stringify({ lastActive: Date.now() })); }
-  } catch(e){}
-}
-
-function clearSession(){
-  try { localStorage.removeItem('app_session'); } catch(e){}
-}
-
-// ═══════════════ OCR: Image Preprocessing + Text Extraction ═══════════════
-function preprocessImage(imageData){
-  return new Promise((resolve)=>{
-    const img=new Image();
-    img.onload=()=>{
-      // Use larger resolution for better OCR
-      const MAX=1600;
-      let w=img.width, h=img.height;
-      if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w=Math.round(w*r);h=Math.round(h*r);}
-      const canvas=document.createElement('canvas');
-      canvas.width=w;canvas.height=h;
-      const ctx=canvas.getContext('2d');
-      ctx.drawImage(img,0,0,w,h);
-
-      // Get pixel data for preprocessing
-      const imageDataObj=ctx.getImageData(0,0,w,h);
-      const data=imageDataObj.data;
-
-      // Step 1: Convert to grayscale
-      for(let i=0;i<data.length;i+=4){
-        const gray=0.299*data[i]+0.587*data[i+1]+0.114*data[i+2];
-        data[i]=data[i+1]=data[i+2]=gray;
-      }
-
-      // Step 2: Enhance contrast (histogram stretching)
-      let minVal=255, maxVal=0;
-      for(let i=0;i<data.length;i+=4){
-        if(data[i]<minVal)minVal=data[i];
-        if(data[i]>maxVal)maxVal=data[i];
-      }
-      const range=maxVal-minVal||1;
-      for(let i=0;i<data.length;i+=4){
-        const stretched=Math.round(((data[i]-minVal)/range)*255);
-        data[i]=data[i+1]=data[i+2]=stretched;
-      }
-
-      // Step 3: Adaptive binarization (Sauvola-like thresholding)
-      // Use a simplified local threshold approach
-      const bw=new Uint8Array(w*h);
-      for(let i=0;i<data.length;i+=4) bw[i/4]=data[i];
-      const blockSize=31;
-      const half=Math.floor(blockSize/2);
-      const k=0.15;
-      for(let y=0;y<h;y++){
-        for(let x=0;x<w;x++){
-          // Calculate local mean in window
-          let sum=0,count=0;
-          const y0=Math.max(0,y-half),y1=Math.min(h-1,y+half);
-          const x0=Math.max(0,x-half),x1=Math.min(w-1,x+half);
-          for(let yy=y0;yy<=y1;yy+=2){
-            for(let xx=x0;xx<=x1;xx+=2){
-              sum+=bw[yy*w+xx];count++;
-            }
-          }
-          const mean=sum/count;
-          const threshold=mean*(1-k);
-          const idx=(y*w+x)*4;
-          const val=data[idx]<threshold?0:255;
-          data[idx]=data[idx+1]=data[idx+2]=val;
-        }
-      }
-
-      // Step 4: Simple sharpening via unsharp mask effect (3x3 kernel)
-      const sharpened=new Uint8ClampedArray(data);
-      for(let y=1;y<h-1;y++){
-        for(let x=1;x<w-1;x++){
-          const idx=(y*w+x)*4;
-          const center=data[idx]*5;
-          const neighbors=data[((y-1)*w+x)*4]+data[((y+1)*w+x)*4]+data[(y*w+x-1)*4]+data[(y*w+x+1)*4];
-          const val=Math.max(0,Math.min(255,center-neighbors));
-          sharpened[idx]=sharpened[idx+1]=sharpened[idx+2]=val;
-        }
-      }
-      imageDataObj.data.set(sharpened);
-      ctx.putImageData(imageDataObj,0,0);
-      resolve(canvas.toDataURL('image/png'));
-    };
-    img.onerror=()=>resolve(imageData); // fallback to original
-    img.src=imageData;
-  });
-}
-
-async function extractTextFromImage(imageData, onProgress){
-  if(typeof Tesseract === 'undefined'){throw new Error('OCR library not loaded');}
-  // Preprocess image for better OCR
-  const processed = await preprocessImage(imageData);
-  const result = await Tesseract.recognize(processed, 'eng', {
-    logger: m => { if(m.status === 'recognizing text' && onProgress) onProgress(m.progress); }
-  });
-  // If preprocessing gave poor results, try with original
-  if(result.data.text.trim().length < 10){
-    const fallback = await Tesseract.recognize(imageData, 'eng', {
-      logger: m => { if(m.status === 'recognizing text' && onProgress) onProgress(m.progress); }
-    });
-    if(fallback.data.text.trim().length > result.data.text.trim().length){
-      return fallback.data.text;
-    }
-  }
-  return result.data.text;
-}
-
-// ═══════════════ Smart Business Card / Truck Sign Parser ═══════════════
-const NOISE_PATTERNS = [
-  /^licensed[,.]?\s*bonded\s*[&,]\s*insured$/i,
-  /^commercial\s*[&,]\s*residential$/i,
-  /^residential\s*[&,]\s*commercial$/i,
-  /^family\s*owned\s*[&,]?\s*operated$/i,
-  /^free\s*estimates?$/i,
-  /^se\s*habla\s*espa[nñ]ol$/i,
-  /^24\s*\/?\s*7/i,
-  /^since\s+\d{4}$/i,
-  /^est\.?\s*\d{4}$/i,
-  /^class\s+[a-c]\s/i,
-  /^general\s*contractor$/i,
-  /^speed\s*limit/i,
-  /^vehicle.*monitored/i,
-  /^transit\s*\d/i,
-  /^ram\s/i,
-  /^promaster/i,
-  /^ford$/i,
-];
-
-const NOTE_PATTERNS = [
-  /licensed[,.]?\s*bonded\s*[&,]\s*insured/i,
-  /family\s*owned\s*[&,]?\s*operated/i,
-  /free\s*estimates?/i,
-  /se\s*habla\s*espa[nñ]ol/i,
-  /24\s*\/?\s*7\s*(emergency|service|hours)/i,
-  /since\s+\d{4}/i,
-  /class\s+[a-c]\s/i,
-  /mhic\s*#?\s*[\d-]+/i,
-  /license\s*#?\s*[\d-]+/i,
-  /cert(ified|ification)/i,
-  /MBE|DBE|WBE|DSLBD/i,
-];
-
-const INDUSTRY_KEYWORDS = {
-  'Plumbing':['plumbing','plumber','drain','sewer','water heater','pipe'],
-  'HVAC':['hvac','heating','cooling','air condition','ac ','furnace','heat pump','ductless','geothermal','refrigeration'],
-  'Electrical':['electric','electrical','electrician','wiring','ev charger','generator','lighting'],
-  'Roofing':['roofing','roofer','roof repair','shingle','gutter'],
-  'Painting':['painting','painter','paint'],
-  'General Contractor':['general contractor','remodeling','renovation','home improvement','construction','home addition','kitchen remodel','bathroom remodel','basement'],
-  'Masonry':['masonry','mason','brick','block','stone','concrete','stucco','flagstone'],
-  'Flooring':['flooring','floor','hardwood','tile','carpet','lvp','laminate'],
-  'Waterproofing':['waterproofing','basement waterproof','foundation repair','crawl space'],
-  'Tree Service':['tree service','tree removal','stump','trimming','arborist'],
-  'Paving':['paving','asphalt','seal coat','driveway'],
-  'Hauling':['hauling','junk removal','debris','cleanout'],
-  'Fire Protection':['fire sprinkler','fire alarm','fire protection'],
-  'Pest Control':['pest control','termite','exterminator','bed bug'],
-  'Chimney Service':['chimney','fireplace'],
-  'Garage Doors':['garage door'],
-  'Pool Construction':['pool','spa','swim'],
-  'Insulation':['insulation'],
-  'Containment':['containment','temporary wall'],
-  'Duct Cleaning':['duct cleaning','air duct','dryer vent'],
-};
-
-function detectIndustry(text){
-  const lower = text.toLowerCase();
-  let best = null, bestCount = 0;
-  for(const [industry, keywords] of Object.entries(INDUSTRY_KEYWORDS)){
-    const count = keywords.filter(k => lower.includes(k)).length;
-    if(count > bestCount){bestCount=count;best=industry;}
-  }
-  return best;
-}
-
-function parseBusinessCard(text){
-  const fields = {};
-  const lines = text.split('\n').map(l=>l.trim()).filter(l=>l.length>1);
-
-  // ── Phone: extract ALL phone numbers ──
-  const phoneRegex = /(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
-  const phones = [...text.matchAll(phoneRegex)].map(m=>m[0]);
-  // Also match toll-free patterns like 1-800-XXX-XXXX or 800-XXX-XXXX
-  const tollFree = /\b1?[-.\s]?8(?:00|55|66|77|88)[-.\s]?\d{3}[-.\s]?\d{4}\b/g;
-  const tolls = [...text.matchAll(tollFree)].map(m=>m[0]);
-  const allPhones = [...new Set([...phones,...tolls])];
-  if(allPhones.length) fields.phone = allPhones.join(', ');
-
-  // ── Email ──
-  const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-  if(emailMatch) fields.email = emailMatch[0].toLowerCase();
-
-  // ── Website: broader patterns including CompanyName.com ──
-  const webPatterns = [
-    /(?:www\.)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/\S*)?/i,
-    /(?:https?:\/\/)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/\S*)?/i,
-    /[a-zA-Z0-9][-a-zA-Z0-9]+\.(?:com|net|org|io|co|biz|info|us|llc)\b/i,
-  ];
-  for(const pat of webPatterns){
-    const m = text.match(pat);
-    if(m){
-      let w = m[0].replace(/^https?:\/\//i,'');
-      // Skip if it looks like an email domain
-      if(!w.includes('@') && !fields.email?.includes(w)){
-        fields.website = w;
-        break;
-      }
-    }
-  }
-
-  // ── Address: state + zip or known area patterns ──
-  const addrMatch = text.match(/\d+[^,\n]{3,}(?:,\s*)?[A-Z]{2}\s*\d{5}(?:-\d{4})?/)
-    || text.match(/\d+[^,\n]{5,},\s*[A-Z][a-z]+(?:\s[A-Z][a-z]+)*,?\s*[A-Z]{2}\s*\d{5}/);
-  if(addrMatch) fields.address = addrMatch[0].trim();
-
-  // ── Classify lines ──
-  const phoneSet = new Set(allPhones.map(p=>p.replace(/\D/g,'')));
-  const isPhoneLine = l => {
-    const digits = l.replace(/\D/g,'');
-    return digits.length >= 10 && phoneSet.has(digits.slice(-10)) || phoneSet.has(digits);
-  };
-  const isNoise = l => NOISE_PATTERNS.some(p => p.test(l));
-  const isContactInfo = l =>
-    isPhoneLine(l) || /@/.test(l) || /www\./i.test(l) ||
-    /\.com|\.net|\.org/i.test(l) || /\d{5}/.test(l);
-
-  // ── Extract notes from known patterns ──
-  const noteItems = [];
-  for(const line of lines){
-    for(const pat of NOTE_PATTERNS){
-      if(pat.test(line)){noteItems.push(line);break;}
-    }
-  }
-  if(noteItems.length) fields.notes = noteItems.join('; ');
-
-  // ── Services: detect bullet/separator patterns ──
-  const serviceItems = [];
-  for(const line of lines){
-    if(isContactInfo(line) || isNoise(line)) continue;
-    // Check for bullet/dot/pipe separated lists
-    if(/[•·|]/.test(line) || (line.includes('*') && line.split('*').length > 2)){
-      const parts = line.split(/[•·|*]/).map(s=>s.trim()).filter(s=>s.length>1);
-      serviceItems.push(...parts);
-    }
-    // Check ALL-CAPS service-list lines (common on trucks)
-    else if(line === line.toUpperCase() && line.length > 5 && /[A-Z]{3,}/.test(line) && !isPhoneLine(line)){
-      // Could be company name OR services. Services usually have multiple words or separators
-      const words = line.split(/\s+/);
-      if(words.length >= 3 && !isNoise(line)){
-        serviceItems.push(line.split(/\s{2,}|,\s*/).map(s=>s.trim()).filter(s=>s.length>1).join(', '));
-      }
-    }
-  }
-
-  // ── Company name: score lines by prominence ──
-  const candidateNames = [];
-  for(const line of lines){
-    if(isContactInfo(line) || isNoise(line)) continue;
-    if(noteItems.includes(line)) continue;
-    // Skip lines that look purely like service lists
-    if(serviceItems.some(s => line.includes(s) && s.length > 15)) continue;
-    if(line.length < 3 || line.length > 60) continue;
-
-    let score = 0;
-    // Prefer lines near the top
-    const idx = lines.indexOf(line);
-    score += Math.max(0, 10 - idx);
-    // Prefer ALL-CAPS (company names on trucks are usually large/caps)
-    if(line === line.toUpperCase() && /[A-Z]/.test(line)) score += 5;
-    // Prefer shorter lines (company names are usually concise)
-    if(line.length < 30) score += 3;
-    // Penalize lines with many common service words
-    const serviceWords = ['repair','install','service','cleaning','removal','maintenance'];
-    const svcCount = serviceWords.filter(w => line.toLowerCase().includes(w)).length;
-    score -= svcCount * 2;
-    // Boost if it contains "construction", "electric", company-like words
-    if(/\b(inc|llc|corp|ltd|co\.?|company|group|builders|enterprises)\b/i.test(line)) score += 4;
-
-    candidateNames.push({line, score});
-  }
-  candidateNames.sort((a,b)=>b.score-a.score);
-  if(candidateNames.length > 0){
-    fields.name = candidateNames[0].line
-      .replace(/^(mc\s*)?/i, m => m) // preserve MC prefix
-      .replace(/\s+/g,' ').trim();
-    // Titlecase if all-caps
-    if(fields.name === fields.name.toUpperCase() && fields.name.length > 2){
-      fields.name = fields.name.replace(/\w\S*/g, t =>
-        t.charAt(0).toUpperCase() + t.substr(1).toLowerCase()
+// ═══════════════ ERROR BOUNDARY ═══════════════
+class ErrorBoundary extends Component {
+  constructor(props){super(props);this.state={hasError:false,error:null}}
+  static getDerivedStateFromError(error){return{hasError:true,error}}
+  componentDidCatch(error,info){console.error('App crash:',error,info)}
+  render(){
+    if(this.state.hasError){
+      return React.createElement('div',{className:'error-screen'},
+        React.createElement('h2',null,'Something went wrong'),
+        React.createElement('p',null,'The app ran into an error. Your data is safe in the browser. Try refreshing the page.'),
+        React.createElement('button',{className:'btn btn-primary',style:{width:'auto',padding:'12px 32px'},
+          onClick:()=>{this.setState({hasError:false,error:null});window.location.reload()}},'Refresh App'),
+        React.createElement('p',{style:{marginTop:12,fontSize:12,color:'#999'}},String(this.state.error))
       );
     }
+    return this.props.children;
   }
-
-  // ── Remaining content lines → services if we didn't get enough ──
-  if(serviceItems.length === 0){
-    const remaining = lines.filter(l =>
-      !isContactInfo(l) && !isNoise(l) && !noteItems.includes(l) &&
-      l !== (candidateNames[0]?.line) && l.length > 8
-    );
-    if(remaining.length) serviceItems.push(...remaining);
-  }
-
-  if(serviceItems.length){
-    fields.services = serviceItems
-      .map(s => s.replace(/^[-•·*]\s*/, '').trim())
-      .filter(s => s.length > 1)
-      .join(', ')
-      .replace(/,\s*,/g, ',')
-      .replace(/\s+/g, ' ')
-      .slice(0, 2000);
-  }
-
-  // ── Industry auto-detection ──
-  const combinedText = [fields.name, fields.services, ...lines].filter(Boolean).join(' ');
-  const industry = detectIndustry(combinedText);
-  if(industry) fields.industry = industry;
-
-  return fields;
-}
-
-// ═══════════════ Duplicate Detection ═══════════════
-function normalizeName(name){
-  if(!name) return '';
-  return name.toLowerCase()
-    .replace(/\b(llc|inc|corp|ltd|co\.?|company|services?|solutions?|group|enterprises?|the)\b/gi, '')
-    .replace(/[^a-z0-9\s]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function findDuplicates(parsed, companies){
-  const results = [];
-  const normNew = normalizeName(parsed.name);
-  const newPhones = (parsed.phone||'').replace(/\D/g,'').match(/\d{10}/g) || [];
-
-  for(const existing of companies){
-    let matchType = null;
-    let score = 0;
-
-    // ── Name matching ──
-    const normExist = normalizeName(existing.name);
-    if(normNew && normExist){
-      // Containment check
-      if(normNew.includes(normExist) || normExist.includes(normNew)){
-        score = 0.8;
-        matchType = 'name';
-      } else {
-        // Jaccard word overlap
-        const wordsA = new Set(normNew.split(' ').filter(w=>w.length>1));
-        const wordsB = new Set(normExist.split(' ').filter(w=>w.length>1));
-        const intersection = [...wordsA].filter(w=>wordsB.has(w)).length;
-        const union = new Set([...wordsA,...wordsB]).size;
-        if(union > 0){
-          const jaccard = intersection / union;
-          if(jaccard >= 0.5){score = jaccard;matchType = 'name';}
-        }
-      }
-    }
-
-    // ── Phone matching ──
-    if(newPhones.length > 0){
-      const existPhones = (existing.phone||'').replace(/\D/g,'').match(/\d{10}/g) || [];
-      const phoneMatch = newPhones.some(p => existPhones.some(ep => ep.includes(p) || p.includes(ep)));
-      if(phoneMatch){
-        score = Math.max(score, 0.9);
-        matchType = matchType ? 'both' : 'phone';
-      }
-    }
-
-    if(matchType && score >= 0.5){
-      results.push({company: existing, score, matchType});
-    }
-  }
-
-  return results.sort((a,b)=>b.score-a.score);
 }
 
 // ═══════════════ IndexedDB HELPERS ═══════════════
@@ -792,24 +192,13 @@ function openDB(){
     };
     req.onsuccess=()=>ok(req.result);
     req.onerror=()=>fail(req.error);
+    req.onblocked=()=>fail(new Error('Database is blocked by another tab'));
   });
 }
-async function dbGetAll(store){const db=await openDB();return new Promise((ok,fail)=>{const tx=db.transaction(store,'readonly');const s=tx.objectStore(store);const r=s.getAll();r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error)})}
-async function dbPut(store,val){const db=await openDB();return new Promise((ok,fail)=>{const tx=db.transaction(store,'readwrite');const s=tx.objectStore(store);const r=s.put(val);r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error)})}
-async function dbDelete(store,key){const db=await openDB();return new Promise((ok,fail)=>{const tx=db.transaction(store,'readwrite');const s=tx.objectStore(store);const r=s.delete(key);r.onsuccess=()=>ok();r.onerror=()=>fail(r.error)})}
-
-// ═══════════════ THEME MANAGEMENT ═══════════════
-function getStoredTheme(){
-  try { return localStorage.getItem('theme') || 'light'; } catch(e) { return 'light'; }
-}
-function setStoredTheme(theme){
-  try { localStorage.setItem('theme', theme); } catch(e) {}
-}
-// Apply theme immediately to prevent flash
-(function(){
-  const theme = getStoredTheme();
-  if(theme === 'dark') document.documentElement.setAttribute('data-theme','dark');
-})();
+async function dbGetAll(store){const db=await openDB();return new Promise((ok,fail)=>{try{const tx=db.transaction(store,'readonly');const s=tx.objectStore(store);const r=s.getAll();r.onsuccess=()=>{db.close();ok(r.result)};r.onerror=()=>{db.close();fail(r.error)}}catch(e){db.close();fail(e)}})}
+async function dbPut(store,val){const db=await openDB();return new Promise((ok,fail)=>{try{const tx=db.transaction(store,'readwrite');const s=tx.objectStore(store);const r=s.put(val);r.onsuccess=()=>{db.close();ok(r.result)};r.onerror=()=>{db.close();fail(r.error)}}catch(e){db.close();fail(e)}})}
+async function dbDelete(store,key){const db=await openDB();return new Promise((ok,fail)=>{try{const tx=db.transaction(store,'readwrite');const s=tx.objectStore(store);const r=s.delete(key);r.onsuccess=()=>{db.close();ok()};r.onerror=()=>{db.close();fail(r.error)}}catch(e){db.close();fail(e)}})}
+async function dbClear(store){const db=await openDB();return new Promise((ok,fail)=>{try{const tx=db.transaction(store,'readwrite');const s=tx.objectStore(store);const r=s.clear();r.onsuccess=()=>{db.close();ok()};r.onerror=()=>{db.close();fail(r.error)}}catch(e){db.close();fail(e)}})}
 
 // ═══════════════ SEED DATA ═══════════════
 const SEED=[
@@ -832,7 +221,7 @@ const SEED=[
   {name:"Commercial Restorers LLC",contact:"",phone:"301-560-6414",email:"",website:"CommercialRestorers.com",address:"Rockville, MD 20850",services:"Clean, paint, repair, restoration, refinishing, carpet, remodeling",industry:"Restoration",rating:0,notes:"",tags:["Restoration","Painting"]},
   {name:"Z. Isaac Painting",contact:"",phone:"302-331-8157",email:"",website:"",address:"Delaware",services:"Painting contractor",industry:"Painting",rating:0,notes:"",tags:["Painting"]},
   {name:"Mona Electric Group / ArchKey",contact:"",phone:"800-GET-MONA",email:"",website:"www.GetMona.com",address:"Clinton, MD 20735",services:"Electrical construction, fire alarm, security, technology; since 1966",industry:"Electrical",rating:0,notes:"",tags:["Electrical","Security"]},
-  {name:"Spartan Electric Company",contact:"",phone:"301-831-8300",email:"",website:"www.spartan-electric.com",address:"Ijamsville, MD 21754",services:"Residential & commercial electrical; VA, MD, WV, DC, PA; since 1964",industry:"Electrical",rating:0,notes:"",tags:["Electrical"]},
+  {name:"Spartan Electric Company",contact:"",phone:"301-831-8300",email:"",website:"www.spartan-electric.com",address:"Ijamsville, MD 21754",services:"Residential & commercial electrical; VA, MD, WV, DC, PA; since 1964",industry:"Electrical",rating:0,notes:"WV: 681-260-2582",tags:["Electrical"]},
   {name:"Eastern Fire Protection",contact:"",phone:"301-261-0240",email:"",website:"www.efp669.com",address:"Crofton, MD 21114",services:"Fire sprinkler, fire alarm, power; installation, inspections, repair",industry:"Fire Protection",rating:0,notes:"",tags:["Fire Sprinkler","Fire Alarm"]},
   {name:"Mack Hauling LLC",contact:"",phone:"703-717-3015",email:"",website:"www.mackhauling.com",address:"Falls Church, VA",services:"Junk removal, construction debris, furniture donations, estate cleanouts",industry:"Hauling",rating:0,notes:"",tags:["Hauling","Junk Removal"]},
   {name:"WGM Masonry Contractors",contact:"",phone:"301-389-1830",email:"wgmconst@yahoo.com",website:"",address:"Sandy Spring, MD",services:"Brick, block, concrete, stucco, pavers, stone",industry:"Masonry",rating:0,notes:"",tags:["Brick","Block","Stone"]},
@@ -865,317 +254,29 @@ const SEED=[
   {name:"Camba Stucco LLC",contact:"",phone:"571-259-7461",email:"",website:"cambastucco.com",address:"Fredericksburg, VA",services:"Stucco, EIFS, caulking, stone installation; 30+ years",industry:"Stucco",rating:0,notes:"",tags:["Stucco","EIFS"]},
   {name:"Bluestone Builders",contact:"",phone:"703-712-2619",email:"",website:"BluestoneBuildersdc.com",address:"Alexandria, VA 22314",services:"Foundation repair, basement waterproofing, crawl space; Class A since 2004",industry:"Waterproofing",rating:0,notes:"",tags:["Foundation","Waterproofing"]},
   {name:"Subcomm Pool and Spa",contact:"",phone:"",email:"",website:"subcommpools.com",address:"MD/VA",services:"Pool construction, maintenance, repairs, vinyl liner, leak detection",industry:"Pool Construction",rating:0,notes:"MHIC #133403",tags:["Pool","Spa"]},
+  {name:"Engineers Outlet",contact:"",phone:"202-333-2679",email:"",website:"",address:"1048 29th St NW, Washington, DC 20007",services:"Engineering hardware supply, wholesale hardware; since 2012",industry:"Hardware Supply",rating:0,notes:"",tags:["Hardware","Supply"]},
+  {name:"Jaxson Point Electrical Construction",contact:"",phone:"",email:"",website:"jaxsonpoint.com",address:"King George, VA",services:"ITS solutions, traffic signals, roadway infrastructure, parking lot installations",industry:"Electrical",rating:0,notes:"",tags:["Electrical","Traffic"]},
+  {name:"Mobile Dent & Scratch Repair",contact:"",phone:"954-592-2974",email:"",website:"",address:"South Florida area",services:"Mobile auto dent, scratch, paint, bumper repair; same day service",industry:"Auto Body",rating:0,notes:"",tags:["Auto Body","Dent Repair"]},
+  {name:"Total Quality Building Services",contact:"",phone:"301-656-2440",email:"",website:"",address:"DC/MD area",services:"Certified green cleaning for commercial buildings; GS-42 Certified",industry:"Cleaning",rating:0,notes:"Also: 202-839-0044",tags:["Commercial Cleaning"]},
+  {name:"TRT Millwork/Hardware/Building Materials",contact:"",phone:"",email:"",website:"",address:"Eastern Shore, MD",services:"Millwork, hardware, building materials, homecenter",industry:"Building Supply",rating:0,notes:"",tags:["Millwork","Hardware"]},
+  {name:"Kollmorgen Mechanical",contact:"",phone:"",email:"",website:"",address:"Virginia",services:"Mechanical contracting (commercial)",industry:"Mechanical",rating:0,notes:"",tags:["Mechanical"]},
+  {name:"Wagner Roofing Company",contact:"",phone:"301-927-9030",email:"",website:"wagnerroofing.com",address:"5328 46th Ave, Hyattsville, MD 20781",services:"Historic roofing restoration, slate, tile, copper, shingles, sheet metal fabrication, gutters; since 1914",industry:"Roofing",rating:0,notes:"",tags:["Roofing","Slate","Historic"]},
+  {name:"ERS Solutions",contact:"",phone:"866-794-2653",email:"",website:"ERSCompany.com",address:"Maryland",services:"Equipment installation, repair, relocation, preventative maintenance",industry:"Equipment Services",rating:0,notes:"",tags:["Equipment","Relocation"]},
+  {name:"The Urgent Plumber",contact:"",phone:"703-347-2885",email:"",website:"",address:"Virginia",services:"Plumbing services",industry:"Plumbing",rating:0,notes:"Also: 571-242-3133",tags:["Plumbing"]},
+  {name:"Hernandez Plumbing & General Contractor",contact:"",phone:"301-325-4608",email:"",website:"",address:"4624 21st St, Mount Rainier, MD 20712",services:"Plumbing, AC, heating; general contracting; commercial & residential; Licensed, Bonded, Insured",industry:"Plumbing / HVAC / GC",rating:0,notes:"",tags:["Plumbing","HVAC","GC"]},
+  {name:"LGM Glass Designs",contact:"",phone:"301-498-7110",email:"sales@lgmglass.com",website:"lgmglass.com",address:"329 Main St, Laurel, MD 20707",services:"Glass fabrication & installation; aluminum doors, storefronts, custom etching, mirrors, shower doors, windows; since 1983",industry:"Glass / Glazing",rating:0,notes:"",tags:["Glass","Mirrors","Doors"]},
 ];
 
-// ═══════════════ INDUSTRY FILTER GROUPS ═══════════════
-const INDUSTRY_GROUPS = {
-  'Trades': ['Plumbing', 'HVAC', 'Electrical', 'Plumbing / HVAC', 'HVAC / Plumbing', 'HVAC / Cleaning', 'HVAC / Construction', 'Sheet Metal / HVAC'],
-  'Exterior': ['Roofing', 'Roofing / Siding', 'Siding', 'Painting', 'Stucco', 'Paving'],
-  'Structure': ['General Contractor', 'Masonry', 'Concrete', 'Waterproofing', 'Drainage', 'Foundation'],
-  'Interior': ['Flooring', 'Tile Installation', 'Drywall', 'Insulation', 'Finish Carpentry', 'Design / Remodeling', 'Remodeling'],
-  'Specialty': ['Fire Protection', 'Chimney Service', 'Garage Doors', 'Pool Construction', 'Containment', 'Duct Cleaning', 'Machine Shop', 'Installation'],
-  'Services': ['Tree Service', 'Hauling', 'Pest Control', 'Cleaning', 'Landscaping', 'Demolition', 'Excavation', 'House Moving', 'Handyman'],
-  'Supply & Other': ['Building Supply', 'Stone / Tile', 'Electrical', 'Restoration'],
-};
-
-function IndustryFilter({industries, filter, setFilter, companies}){
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const ref = useRef();
-
-  // Close on outside click
-  useEffect(()=>{
-    if(!open) return;
-    const handler = (e) => { if(ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return ()=>document.removeEventListener('mousedown', handler);
-  },[open]);
-
-  // Count per industry
-  const counts = useMemo(()=>{
-    const c = {};
-    companies.forEach(co => { if(co.industry) c[co.industry] = (c[co.industry]||0)+1; });
-    return c;
-  },[companies]);
-
-  // Available industries (from actual data)
-  const available = industries.filter(i => i !== 'All');
-
-  // Group industries
-  const grouped = useMemo(()=>{
-    const result = [];
-    const used = new Set();
-    for(const [group, members] of Object.entries(INDUSTRY_GROUPS)){
-      const matching = members.filter(m => available.includes(m));
-      if(matching.length > 0){
-        result.push({group, items: matching});
-        matching.forEach(m => used.add(m));
-      }
-    }
-    // Ungrouped
-    const ungrouped = available.filter(i => !used.has(i));
-    if(ungrouped.length > 0) result.push({group: 'Other', items: ungrouped});
-    return result;
-  },[available]);
-
-  // Filter by search
-  const filteredGroups = useMemo(()=>{
-    if(!search.trim()) return grouped;
-    const q = search.toLowerCase();
-    return grouped.map(g => ({
-      group: g.group,
-      items: g.items.filter(i => i.toLowerCase().includes(q))
-    })).filter(g => g.items.length > 0);
-  },[grouped, search]);
-
-  const activeLabel = filter === 'All' ? `All Industries (${companies.length})` : filter;
-
+// ═══════════════ CONFIRM DIALOG ═══════════════
+function ConfirmDialog({title,message,onConfirm,onCancel,danger}){
   return(
-    <div className="industry-filter" ref={ref}>
-      <button className={`industry-filter-btn ${open?'active':''}`} onClick={()=>{setOpen(!open);setSearch('');}}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-        <span className="filter-label">{activeLabel}</span>
-        {filter!=='All'&&<span className="filter-count">{counts[filter]||0}</span>}
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:14,height:14,transform:open?'rotate(180deg)':'',transition:'transform .15s'}}><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      {open&&(
-        <div className="industry-dropdown">
-          <div className="industry-dropdown-search">
-            <input placeholder="Search industries..." value={search} onChange={e=>setSearch(e.target.value)} autoFocus/>
-          </div>
-          <div className="industry-option" onClick={()=>{setFilter('All');setOpen(false)}} style={filter==='All'?{background:'var(--accent-light)',color:'var(--accent2)',fontWeight:600}:{}}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
-            All Industries
-            <span className="option-count">{companies.length}</span>
-          </div>
-          {filteredGroups.map(g=>(
-            <React.Fragment key={g.group}>
-              <div className="industry-group-label">{g.group}</div>
-              {g.items.map(ind=>(
-                <div key={ind} className={`industry-option ${filter===ind?'selected':''}`} onClick={()=>{setFilter(filter===ind?'All':ind);setOpen(false);}}>
-                  {ind}
-                  <span className="option-count">{counts[ind]||0}</span>
-                </div>
-              ))}
-            </React.Fragment>
-          ))}
-          {filter!=='All'&&(
-            <div className="industry-clear" onClick={()=>{setFilter('All');setOpen(false);}}>
-              Clear Filter
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ═══════════════ GOOGLE CONTACTS INTEGRATION ═══════════════
-const GOOGLE_CLIENT_ID = ''; // User must set this — see setup instructions
-const GOOGLE_SCOPES = 'https://www.googleapis.com/auth/contacts';
-
-function getGoogleToken(){
-  try { return JSON.parse(localStorage.getItem('google_token')); } catch(e){ return null; }
-}
-function setGoogleToken(token){
-  localStorage.setItem('google_token', JSON.stringify(token));
-}
-function clearGoogleToken(){
-  localStorage.removeItem('google_token');
-}
-
-async function googleApiRequest(url, options={}){
-  const token = getGoogleToken();
-  if(!token) throw new Error('Not authenticated with Google');
-  const resp = await fetch(url, {
-    ...options,
-    headers: {
-      'Authorization': `Bearer ${token.access_token}`,
-      'Content-Type': 'application/json',
-      ...(options.headers||{})
-    }
-  });
-  if(resp.status === 401){
-    clearGoogleToken();
-    throw new Error('Google session expired — please sign in again');
-  }
-  if(!resp.ok) throw new Error(`Google API error: ${resp.status}`);
-  return resp.json();
-}
-
-async function fetchGoogleContacts(){
-  const data = await googleApiRequest(
-    'https://people.googleapis.com/v1/people/me/connections?personFields=names,phoneNumbers,emailAddresses,organizations,urls,addresses,biographies&pageSize=1000&sortOrder=FIRST_NAME_ASCENDING'
-  );
-  return (data.connections || []).map(contact => {
-    const name = contact.names?.[0]?.displayName || '';
-    const org = contact.organizations?.[0];
-    return {
-      resourceName: contact.resourceName,
-      name: org?.name || name,
-      contact: org?.name ? name : '',
-      phone: (contact.phoneNumbers||[]).map(p=>p.value).join(', '),
-      email: (contact.emailAddresses||[]).map(e=>e.value).join(', '),
-      website: (contact.urls||[]).map(u=>u.value).join(', '),
-      address: (contact.addresses||[]).map(a=>a.formattedValue).filter(Boolean).join('; '),
-      services: org?.title || '',
-      industry: org?.department || '',
-      notes: (contact.biographies||[]).map(b=>b.value).join(' '),
-    };
-  });
-}
-
-async function pushContractorToGoogle(contractor){
-  const body = {
-    names: [{ givenName: contractor.name }],
-    phoneNumbers: (contractor.phone||'').split(',').map(p=>p.trim()).filter(Boolean).map(p=>({value:p})),
-    emailAddresses: (contractor.email||'').split(',').map(e=>e.trim()).filter(Boolean).map(e=>({value:e})),
-    urls: (contractor.website||'').split(',').map(w=>w.trim()).filter(Boolean).map(w=>({value:w.startsWith('http')?w:'https://'+w})),
-    addresses: contractor.address ? [{formattedValue:contractor.address}] : [],
-    organizations: [{
-      name: contractor.name,
-      title: contractor.services?.slice(0,200) || '',
-      department: contractor.industry || ''
-    }],
-    biographies: contractor.notes ? [{value: contractor.notes, contentType:'TEXT_PLAIN'}] : [],
-  };
-  return googleApiRequest('https://people.googleapis.com/v1/people:createContact?personFields=names', {
-    method: 'POST',
-    body: JSON.stringify(body)
-  });
-}
-
-async function syncAllToGoogle(companies, onProgress){
-  const existing = await fetchGoogleContacts();
-  const existingNames = new Set(existing.map(c => c.name.toLowerCase().trim()));
-  let synced = 0;
-  for(let i=0; i<companies.length; i++){
-    if(onProgress) onProgress(i, companies.length);
-    if(existingNames.has(companies[i].name.toLowerCase().trim())) continue;
-    try {
-      await pushContractorToGoogle(companies[i]);
-      synced++;
-      // Rate limiting: Google People API has quota limits
-      if(synced % 5 === 0) await new Promise(r=>setTimeout(r,1000));
-    } catch(e){ console.warn('Failed to sync:', companies[i].name, e); }
-  }
-  return synced;
-}
-
-async function importFromGoogle(){
-  const contacts = await fetchGoogleContacts();
-  return contacts.filter(c => c.name && c.name.trim());
-}
-
-// ═══════════════ LOGIN SCREEN ═══════════════
-function LoginScreen({onLogin}){
-  const authState = getAuthState();
-  const [isSetup, setIsSetup] = useState(!authState.hasPassword);
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [darkMode, setDarkMode] = useState(getStoredTheme()==='dark');
-
-  const toggleTheme = () => {
-    const next = !darkMode;
-    setDarkMode(next);
-    if(next) document.documentElement.setAttribute('data-theme','dark');
-    else document.documentElement.removeAttribute('data-theme');
-    setStoredTheme(next ? 'dark' : 'light');
-  };
-
-  const handleSetup = async () => {
-    if(password.length < 4){setError('PIN must be at least 4 characters');return;}
-    if(password !== confirmPassword){setError('PINs do not match');return;}
-    setLoading(true);
-    try {
-      const hash = await hashPassword(password);
-      localStorage.setItem('app_password_hash', hash);
-      setSession();
-      onLogin();
-    } catch(e){setError('Setup failed');} finally {setLoading(false);}
-  };
-
-  const handleLogin = async () => {
-    if(!password){setError('Enter your PIN');return;}
-    setLoading(true);
-    try {
-      const hash = await hashPassword(password);
-      const stored = localStorage.getItem('app_password_hash');
-      if(hash === stored){
-        setSession();
-        setError('');
-        onLogin();
-      } else {
-        setError('Incorrect PIN');
-        setPassword('');
-      }
-    } catch(e){setError('Login failed');} finally {setLoading(false);}
-  };
-
-  const handleKeyDown = (e) => {
-    if(e.key === 'Enter'){
-      e.preventDefault();
-      if(isSetup) handleSetup(); else handleLogin();
-    }
-  };
-
-  return(
-    <div className="login-screen" style={{position:'relative'}}>
-      <button className="login-theme-btn" onClick={toggleTheme}>
-        {darkMode?(
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        ):(
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        )}
-      </button>
-      <div className="login-card">
-        <div className="login-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/></svg>
-        </div>
-        <h2>{isSetup ? 'Set Up Your PIN' : 'Contractor Directory'}</h2>
-        <p className="login-sub">{isSetup ? 'Create a PIN to protect your data' : 'Enter your PIN to continue'}</p>
-
-        <input
-          className="login-input"
-          type="password"
-          inputMode="numeric"
-          placeholder={isSetup ? 'Create PIN' : 'Enter PIN'}
-          value={password}
-          onChange={e=>{ setPassword(e.target.value.slice(0,20)); setError(''); }}
-          onKeyDown={handleKeyDown}
-          autoFocus
-          maxLength={20}
-        />
-
-        {isSetup && (
-          <input
-            className="login-input"
-            type="password"
-            inputMode="numeric"
-            placeholder="Confirm PIN"
-            value={confirmPassword}
-            onChange={e=>{ setConfirmPassword(e.target.value.slice(0,20)); setError(''); }}
-            onKeyDown={handleKeyDown}
-            maxLength={20}
-            style={{marginTop:10}}
-          />
-        )}
-
-        <div className="login-error">{error}</div>
-
-        <button className="login-btn" onClick={isSetup ? handleSetup : handleLogin} disabled={loading}>
-          {loading ? 'Please wait...' : isSetup ? 'Set PIN & Continue' : 'Unlock'}
-        </button>
-
-        {isSetup && (
-          <p className="login-setup-note">Your PIN is stored securely on this device using SHA-256 hashing. It never leaves your phone.</p>
-        )}
-
-        <div className="login-lock-hint">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          Auto-locks after 30 min of inactivity
+    <div className="confirm-overlay" onClick={onCancel}>
+      <div className="confirm-box" onClick={e=>e.stopPropagation()}>
+        <h3>{title}</h3>
+        <p>{message}</p>
+        <div className="btn-row">
+          <button className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+          <button className={`btn ${danger?'btn-danger':'btn-primary'}`} onClick={onConfirm}>{danger?'Delete':'Confirm'}</button>
         </div>
       </div>
     </div>
@@ -1186,60 +287,55 @@ function LoginScreen({onLogin}){
 function App(){
   const [companies,setCompanies]=useState([]);
   const [loaded,setLoaded]=useState(false);
+  const [dbAvailable,setDbAvailable]=useState(true);
   const [search,setSearch]=useState('');
   const [filter,setFilter]=useState('All');
   const [selected,setSelected]=useState(null);
   const [editing,setEditing]=useState(null);
   const [showMenu,setShowMenu]=useState(false);
   const [toast,setToast]=useState(null);
-  const [showBatchScan,setShowBatchScan]=useState(false);
-  const [darkMode,setDarkMode]=useState(getStoredTheme()==='dark');
-  const [googleToken,setGoogleTokenState]=useState(()=>getGoogleToken());
-  const [googleSyncing,setGoogleSyncing]=useState(false);
-  const [googleSyncProgress,setGoogleSyncProgress]=useState('');
-  const [isLoggedIn,setIsLoggedIn]=useState(()=>getAuthState().isLoggedIn);
-  const fileRef=useRef();
+  const [confirmAction,setConfirmAction]=useState(null);
+  const [showBackupBanner,setShowBackupBanner]=useState(false);
+  const [saving,setSaving]=useState(false);
 
-  const flash=msg=>{setToast(msg);setTimeout(()=>setToast(null),2200)};
+  const flash=useCallback(msg=>{setToast(msg);setTimeout(()=>setToast(null),2500)},[]);
 
-  // Auto-lock: refresh session on user activity, lock after timeout
-  useEffect(()=>{
-    if(!isLoggedIn) return;
-    const onActivity = () => refreshSession();
-    const events = ['click','keydown','scroll','touchstart'];
-    events.forEach(e => window.addEventListener(e, onActivity, {passive:true}));
-    const lockCheck = setInterval(()=>{
-      const auth = getAuthState();
-      if(auth.hasPassword && !auth.isLoggedIn) setIsLoggedIn(false);
-    }, 60000); // check every minute
-    return ()=>{
-      events.forEach(e => window.removeEventListener(e, onActivity));
-      clearInterval(lockCheck);
-    };
-  },[isLoggedIn]);
-
-  // Theme toggle
-  const toggleTheme=useCallback(()=>{
-    const next=!darkMode;
-    setDarkMode(next);
-    if(next){document.documentElement.setAttribute('data-theme','dark')}
-    else{document.documentElement.removeAttribute('data-theme')}
-    setStoredTheme(next?'dark':'light');
-  },[darkMode]);
+  // Check if backup reminder is needed
+  const checkBackupReminder=useCallback(()=>{
+    try{
+      const lastBackup=localStorage.getItem('lastBackupDate');
+      if(!lastBackup){setShowBackupBanner(true);return}
+      const days=(Date.now()-parseInt(lastBackup))/(1000*60*60*24);
+      if(days>=BACKUP_INTERVAL_DAYS)setShowBackupBanner(true);
+    }catch(e){}
+  },[]);
 
   useEffect(()=>{
     (async()=>{
-      let data=await dbGetAll('companies');
-      if(!data.length){
-        for(const c of SEED)await dbPut('companies',{...c,createdAt:Date.now()});
-        data=await dbGetAll('companies');
+      try{
+        let data=await dbGetAll('companies');
+        if(!data.length){
+          for(const c of SEED)await dbPut('companies',{...c,createdAt:Date.now()});
+          data=await dbGetAll('companies');
+        }
+        setCompanies(data);
+        setDbAvailable(true);
+      }catch(err){
+        console.error('DB init error:',err);
+        setCompanies(SEED.map((c,i)=>({...c,id:i+1,createdAt:Date.now()})));
+        setDbAvailable(false);
+        flash('Database unavailable — running in read-only mode');
+      }finally{
+        setLoaded(true);
+        checkBackupReminder();
       }
-      setCompanies(data);
-      setLoaded(true);
     })();
   },[]);
 
-  const refresh=async()=>{setCompanies(await dbGetAll('companies'))};
+  const refresh=useCallback(async()=>{
+    try{setCompanies(await dbGetAll('companies'))}
+    catch(e){console.error('Refresh failed:',e);flash('Failed to reload data')}
+  },[flash]);
 
   const industries=useMemo(()=>{
     const s=new Set(companies.map(c=>c.industry).filter(Boolean));
@@ -1248,227 +344,140 @@ function App(){
 
   const filtered=useMemo(()=>{
     let list=[...companies];
-    if(search){const q=search.toLowerCase();list=list.filter(c=>
-      c.name.toLowerCase().includes(q)||c.services.toLowerCase().includes(q)||
-      c.industry.toLowerCase().includes(q)||c.phone.includes(q)||
-      (c.address||'').toLowerCase().includes(q)||(c.tags||[]).some(t=>t.toLowerCase().includes(q))||
-      (c.notes||'').toLowerCase().includes(q)||(c.contact||'').toLowerCase().includes(q)
-    )}
+    if(search){const q=search.toLowerCase();list=list.filter(c=>{
+      try{
+        return (c.name||'').toLowerCase().includes(q)||(c.services||'').toLowerCase().includes(q)||
+        (c.industry||'').toLowerCase().includes(q)||(c.phone||'').includes(q)||
+        (c.address||'').toLowerCase().includes(q)||(c.tags||[]).some(t=>t.toLowerCase().includes(q))||
+        (c.notes||'').toLowerCase().includes(q)||(c.contact||'').toLowerCase().includes(q)||
+        (c.email||'').toLowerCase().includes(q)||(c.website||'').toLowerCase().includes(q)
+      }catch(e){return false}
+    })}
     if(filter!=='All')list=list.filter(c=>c.industry===filter);
     list.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
     return list;
   },[companies,search,filter]);
 
-  const saveCompany=async(c)=>{
-    const validated = validateCompany(c);
-    if(!validated || !validated.name.trim()){flash('Company name is required');return;}
-    await dbPut('companies',validated);
+  const saveCompany=useCallback(async(c)=>{
     await refresh();
     setEditing(null);setSelected(null);
-    flash(validated.id?'Saved':'Company added');
-  };
+    flash(c.id?'Saved':'Company added');
+  },[refresh,flash]);
 
-  const removeCompany=async(id)=>{
-    if(typeof id !== 'number') return;
-    await dbDelete('companies',id);
-    await dbDelete('photos',id);
-    await refresh();
-    setEditing(null);setSelected(null);
-    flash('Removed');
-  };
+  const removeCompany=useCallback(async(id)=>{
+    try{
+      await dbDelete('companies',id);
+      try{await dbDelete('photos',id)}catch(e){}
+      await refresh();
+      setEditing(null);setSelected(null);
+      flash('Removed');
+    }catch(e){flash('Delete failed — try again')}
+  },[refresh,flash]);
 
-  const updateRating=async(c,r)=>{
-    const rating = Math.max(0, Math.min(5, parseInt(r) || 0));
-    await dbPut('companies',{...c,rating:rating===c.rating?0:rating});
-    await refresh();
-  };
+  const updateRating=useCallback(async(c,r)=>{
+    try{
+      await dbPut('companies',{...c,rating:r===c.rating?0:r});
+      await refresh();
+    }catch(e){flash('Rating update failed')}
+  },[refresh,flash]);
 
-  const exportCSV=()=>{
-    const h=['Name','Contact','Phone','Email','Website','Address','Services','Industry','Rating','Notes','Tags'];
-    const rows=companies.map(c=>[c.name,c.contact,c.phone,c.email,c.website,c.address,c.services,c.industry,c.rating,c.notes,(c.tags||[]).join('; ')]);
-    const csv=[h,...rows].map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
-    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='contractors.csv';a.click();
-    URL.revokeObjectURL(a.href);
-    setShowMenu(false);flash('CSV exported');
-  };
+  const exportCSV=useCallback(()=>{
+    if(!companies.length){flash('No data to export');setShowMenu(false);return}
+    try{
+      const h=['Name','Contact','Phone','Email','Website','Address','Services','Industry','Rating','Notes','Tags'];
+      const rows=companies.map(c=>[c.name,c.contact,c.phone,c.email,c.website,c.address,c.services,c.industry,c.rating,c.notes,(c.tags||[]).join('; ')]);
+      const csv=[h,...rows].map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+      const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='contractors_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+      setShowMenu(false);flash('CSV exported');
+    }catch(e){flash('Export failed')}
+  },[companies,flash]);
 
-  const exportJSON=()=>{
-    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(companies,null,2)],{type:'application/json'}));a.download='contractors.json';a.click();
-    URL.revokeObjectURL(a.href);
-    setShowMenu(false);flash('JSON exported');
-  };
+  const exportJSON=useCallback(()=>{
+    if(!companies.length){flash('No data to export');setShowMenu(false);return}
+    try{
+      const a=document.createElement('a');
+      const exportData={version:APP_VERSION,exportedAt:new Date().toISOString(),companies:companies};
+      a.href=URL.createObjectURL(new Blob([JSON.stringify(exportData,null,2)],{type:'application/json'}));
+      a.download='contractors_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+      try{localStorage.setItem('lastBackupDate',String(Date.now()))}catch(e){}
+      setShowBackupBanner(false);
+      setShowMenu(false);flash('JSON backup exported');
+    }catch(e){flash('Export failed')}
+  },[companies,flash]);
 
-  const importJSON=()=>{
+  const importJSON=useCallback(()=>{
     const inp=document.createElement('input');inp.type='file';inp.accept='.json';
     inp.onchange=async e=>{
       const f=e.target.files[0];if(!f)return;
-      if(f.size > MAX_IMPORT_SIZE){flash('File too large (max 10MB)');return;}
-      if(!f.name.endsWith('.json')){flash('Only .json files accepted');return;}
+      if(f.size>50*1024*1024){flash('File too large (max 50MB)');return}
       try{
         const txt=await f.text();
-        const data=JSON.parse(txt);
-        if(!Array.isArray(data)){flash('Invalid format: expected array');return;}
-        if(data.length > MAX_IMPORT_COUNT){flash(`Too many entries (max ${MAX_IMPORT_COUNT})`);return;}
-        let imported = 0;
+        const raw=JSON.parse(txt);
+        const data=Array.isArray(raw)?raw:(raw.companies&&Array.isArray(raw.companies)?raw.companies:null);
+        if(!data){flash('Invalid format — expected array or {companies:[...]}');return}
+        const existing=await dbGetAll('companies');
+        const existingNames=new Set(existing.map(x=>(x.name||'').toLowerCase().trim()));
+        let imported=0;
         for(const c of data){
-          const validated = validateCompany(c);
-          if(validated && validated.name.trim()){
-            delete validated.id;
-            await dbPut('companies',{...validated,createdAt:Date.now()});
-            imported++;
-          }
+          if(existingNames.has((c.name||'').toLowerCase().trim()))continue;
+          delete c.id;await dbPut('companies',{...c,createdAt:Date.now()});imported++;
         }
-        await refresh();flash(`Imported ${imported} companies`);
-      }catch(err){flash('Invalid JSON file')}
+        await refresh();
+        const skipped=data.length-imported;
+        flash(`Imported ${imported} companies${skipped?' ('+skipped+' duplicates skipped)':''}`);
+      }catch(err){flash('Import failed: '+err.message)}
     };inp.click();setShowMenu(false);
-  };
+  },[refresh,flash]);
 
-  // Google OAuth
-  const handleGoogleSignIn = () => {
-    if(!GOOGLE_CLIENT_ID){
-      flash('Google Client ID not configured — see setup instructions');
-      setShowMenu(false);
-      return;
-    }
-    try {
-      const client = google.accounts.oauth2.initTokenClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: GOOGLE_SCOPES,
-        callback: (response) => {
-          if(response.access_token){
-            const tokenData = { access_token: response.access_token, expires_at: Date.now() + response.expires_in * 1000 };
-            setGoogleToken(tokenData);
-            setGoogleTokenState(tokenData);
-            flash('Connected to Google Contacts');
-          }
-        }
-      });
-      client.requestAccessToken();
-    } catch(e){ flash('Google sign-in failed — check your Client ID'); }
-    setShowMenu(false);
-  };
-
-  const handleGoogleSignOut = () => {
-    clearGoogleToken();
-    setGoogleTokenState(null);
-    setShowMenu(false);
-    flash('Disconnected from Google');
-  };
-
-  const handleSyncToGoogle = async () => {
-    if(!googleToken){ flash('Sign in to Google first'); return; }
-    setGoogleSyncing(true);
-    setShowMenu(false);
-    try {
-      const count = await syncAllToGoogle(companies, (i, total) => {
-        setGoogleSyncProgress(`Syncing ${i+1}/${total}...`);
-      });
-      flash(`Synced ${count} new contact${count!==1?'s':''} to Google`);
-    } catch(e){
-      if(e.message.includes('expired')){
-        setGoogleTokenState(null);
-        flash('Google session expired — please sign in again');
-      } else {
-        flash('Sync failed: ' + e.message);
+  const resetToSeed=useCallback(()=>{
+    setConfirmAction({
+      title:'Reset All Data?',
+      message:'This will delete all your companies, ratings, notes, and photos, then reload the original 63 contractors. This cannot be undone. Export a backup first!',
+      danger:true,
+      onConfirm:async()=>{
+        try{
+          await dbClear('companies');
+          await dbClear('photos');
+          for(const c of SEED)await dbPut('companies',{...c,createdAt:Date.now()});
+          await refresh();
+          flash('Reset to original data');
+        }catch(e){flash('Reset failed: '+e.message)}
+        setConfirmAction(null);
       }
-    }
-    setGoogleSyncing(false);
-    setGoogleSyncProgress('');
-  };
-
-  const handleImportFromGoogle = async () => {
-    if(!googleToken){ flash('Sign in to Google first'); return; }
-    setGoogleSyncing(true);
+    });
     setShowMenu(false);
-    try {
-      const contacts = await importFromGoogle();
-      let imported = 0;
-      for(const c of contacts){
-        const validated = validateCompany({
-          name: c.name, contact: c.contact, phone: c.phone,
-          email: c.email, website: c.website, address: c.address,
-          services: c.services, industry: c.industry, notes: c.notes,
-          rating: 0, tags: [], createdAt: Date.now()
-        });
-        if(validated && validated.name.trim()){
-          await dbPut('companies', validated);
-          imported++;
-        }
-      }
-      await refresh();
-      flash(`Imported ${imported} contacts from Google`);
-    } catch(e){
-      if(e.message.includes('expired')){
-        setGoogleTokenState(null);
-        flash('Google session expired — please sign in again');
-      } else {
-        flash('Import failed: ' + e.message);
-      }
-    }
-    setGoogleSyncing(false);
-  };
+  },[refresh,flash]);
 
-  // Search input sanitization
-  const handleSearch = useCallback((e) => {
-    const val = e.target.value;
-    if(val.length > 200) return;
-    setSearch(val);
-  }, []);
-
-  // Show login screen if not authenticated
-  if(!isLoggedIn) return <LoginScreen onLogin={()=>setIsLoggedIn(true)}/>;
-
-  if(!loaded)return(
-    <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'var(--muted)',flexDirection:'column',gap:12}}>
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{animation:'spin 1s linear infinite'}}>
-        <style>{"@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}"}</style>
-        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-      </svg>
-      <span style={{fontSize:14,fontWeight:500}}>Loading directory...</span>
-    </div>
-  );
+  if(!loaded)return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'var(--muted)'}}>Loading...</div>;
 
   return(
     <div className="app">
       <div className="header">
         <h1>Contractor Directory</h1>
-        <span className="security-badge">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          Secured
-        </span>
-        <button className="header-btn" onClick={toggleTheme} title={darkMode?'Switch to light mode':'Switch to dark mode'}>
-          {darkMode?(
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-          ):(
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-          )}
-        </button>
         <div style={{position:'relative'}}>
           <button className="header-btn" onClick={()=>setShowMenu(!showMenu)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
           </button>
           {showMenu&&<><div className="menu-overlay" onClick={()=>setShowMenu(false)}/><div className="menu">
             <div className="menu-item" onClick={exportCSV}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export CSV</div>
-            <div className="menu-item" onClick={exportJSON}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export JSON</div>
+            <div className="menu-item" onClick={exportJSON}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export JSON Backup</div>
             <div className="menu-divider"/>
             <div className="menu-item" onClick={importJSON}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import JSON</div>
             <div className="menu-divider"/>
-            {googleToken?(
-              <>
-                <div className="menu-item" onClick={handleSyncToGoogle} style={googleSyncing?{opacity:.5,pointerEvents:'none'}:{}}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>{googleSyncing?googleSyncProgress||'Syncing...':'Sync to Google Contacts'}</div>
-                <div className="menu-item" onClick={handleImportFromGoogle} style={googleSyncing?{opacity:.5,pointerEvents:'none'}:{}}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import from Google</div>
-                <div className="menu-item" onClick={handleGoogleSignOut} style={{color:'var(--red)'}}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Disconnect Google</div>
-              </>
-            ):(
-              <div className="menu-item" onClick={handleGoogleSignIn}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Connect Google Contacts</div>
-            )}
-            <div className="menu-divider"/>
-            <div className="menu-item" onClick={()=>{clearSession();setIsLoggedIn(false);setShowMenu(false)}}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Lock App</div>
+            <div className="menu-item" style={{color:'var(--red)'}} onClick={resetToSeed}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>Reset to Original Data</div>
           </div></>}
         </div>
       </div>
 
       <div className="body-wrap">
+        {!dbAvailable&&<div className="backup-banner" style={{background:'#fef2f2',borderColor:'#fecaca',color:'var(--red)'}}>Database unavailable — read-only mode. Try refreshing.</div>}
+
+        {showBackupBanner&&dbAvailable&&<div className="backup-banner">
+          <span style={{flex:1}}>Back up your data to avoid losing changes</span>
+          <button onClick={exportJSON}>Backup Now</button>
+          <span className="dismiss" onClick={()=>{setShowBackupBanner(false);try{localStorage.setItem('lastBackupDate',String(Date.now()))}catch(e){}}}>×</span>
+        </div>}
+
         <div className="stats">
           <div className="stat"><div className="stat-n">{companies.length}</div><div className="stat-l">Total</div></div>
           <div className="stat"><div className="stat-n">{filtered.length}</div><div className="stat-l">Showing</div></div>
@@ -1478,7 +487,7 @@ function App(){
 
         <div className="search-bar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          <input placeholder="Search name, service, tag, location..." value={search} onChange={handleSearch} maxLength={200}/>
+          <input placeholder="Search name, service, tag, location..." value={search} onChange={e=>setSearch(e.target.value)}/>
         </div>
 
         <IndustryFilter industries={industries} filter={filter} setFilter={setFilter} companies={companies}/>
@@ -1494,51 +503,39 @@ function App(){
         )}
       </div>
 
-      <button className="fab fab-secondary" onClick={()=>setShowBatchScan(true)} title="Batch Scan" style={{bottom:90}}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 3h6v6H2z"/><path d="M16 3h6v6h-6z"/><path d="M2 15h6v6H2z"/><path d="M19 15v3a2 2 0 0 1-2 2h-3"/><path d="M15 15h6"/></svg>
-      </button>
-      <button className="fab" onClick={()=>setEditing({name:'',contact:'',phone:'',email:'',website:'',address:'',services:'',industry:'',rating:0,notes:'',tags:[],createdAt:Date.now()})}>
+      {dbAvailable&&<button className="fab" onClick={()=>setEditing({name:'',contact:'',phone:'',email:'',website:'',address:'',services:'',industry:'',rating:0,notes:'',tags:[],createdAt:Date.now()})}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      </button>
+      </button>}
 
-      {selected&&<DetailSheet c={selected} onClose={()=>setSelected(null)} onEdit={()=>{setEditing(selected);setSelected(null)}} onDelete={()=>removeCompany(selected.id)}/>}
-      {editing&&<EditSheet c={editing} onClose={()=>setEditing(null)} onSave={saveCompany} industries={industries.filter(i=>i!=='All')} companies={companies}/>}
-      {showBatchScan&&<BatchScanSheet onClose={()=>setShowBatchScan(false)} companies={companies} onComplete={(count)=>{setShowBatchScan(false);refresh();flash(`Saved ${count} contractor${count>1?'s':''}`)}}/>}
+      {selected&&<DetailSheet c={selected} onClose={()=>setSelected(null)} onEdit={()=>{setEditing(selected);setSelected(null)}} onDelete={id=>{
+        setConfirmAction({title:'Delete Company?',message:'This will permanently remove this contractor and any attached photo. This cannot be undone.',danger:true,
+          onConfirm:()=>{removeCompany(id);setConfirmAction(null)}});
+      }} dbAvailable={dbAvailable}/>}
+      {editing&&<EditSheet c={editing} onClose={()=>setEditing(null)} onSave={saveCompany} industries={industries.filter(i=>i!=='All')} flash={flash}/>}
       {toast&&<div className="toast">{toast}</div>}
+      {confirmAction&&<ConfirmDialog title={confirmAction.title} message={confirmAction.message} danger={confirmAction.danger} onConfirm={confirmAction.onConfirm} onCancel={()=>setConfirmAction(null)}/>}
     </div>
   );
-}
-
-// Helper: get photos for a company (returns array, handles legacy single-photo format)
-async function getCompanyPhotos(companyId){
-  try{
-    const all=await dbGetAll('photos');
-    const m=all.find(x=>x.companyId===companyId);
-    if(!m) return [];
-    if(Array.isArray(m.photos)) return m.photos;
-    if(m.data) return [m.data]; // legacy single photo
-    return [];
-  }catch(e){return [];}
 }
 
 // ═══════════════ COMPANY CARD ═══════════════
 function CompanyCard({c,onClick,onRate}){
   const [photo,setPhoto]=useState(null);
-  useEffect(()=>{(async()=>{const photos=await getCompanyPhotos(c.id);if(photos.length)setPhoto(photos[0])})()},[c.id]);
+  useEffect(()=>{setPhoto(null);let mounted=true;(async()=>{try{const p=await dbGetAll('photos');const m=p.find(x=>x.companyId===c.id);if(mounted&&m)setPhoto(m.data)}catch(e){}})();return()=>{mounted=false}},[c.id]);
   return(
     <div className="card" onClick={onClick}>
       <div className="card-top">
         <div style={{flex:1}}>
-          <div className="card-name">{c.name}</div>
-          {c.contact&&<div style={{fontSize:12,color:'var(--muted)',marginTop:2}}>{c.contact}</div>}
+          <div className="card-name">{c.name||'(No Name)'}</div>
+          {c.contact&&<div style={{fontSize:12,color:'var(--muted)',marginTop:1}}>{c.contact}</div>}
         </div>
-        <span className="card-industry">{c.industry}</span>
+        <span className="card-industry">{c.industry||'Other'}</span>
         {photo&&<img src={photo} className="card-photo" alt=""/>}
       </div>
-      {c.phone&&<div className="card-detail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 11.042 11.042 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><a href={"tel:"+sanitizePhone(c.phone).replace(/[^0-9+]/g,'')} onClick={e=>e.stopPropagation()} style={{color:'var(--accent2)',textDecoration:'none',fontWeight:500}}>{c.phone}</a></div>}
+      {c.phone&&<div className="card-detail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 11.042 11.042 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><a href={"tel:"+c.phone.replace(/[^0-9+]/g,'')} onClick={e=>e.stopPropagation()} style={{color:'var(--accent2)',textDecoration:'none'}}>{c.phone}</a></div>}
       {c.services&&<div className="card-services">{c.services}</div>}
       <div className="card-footer">
-        <div className="card-tags">{(c.tags||[]).slice(0,4).map(t=><span key={t} className="tag">{t}</span>)}</div>
+        <div className="card-tags">{(c.tags||[]).slice(0,4).map((t,i)=><span key={t+i} className="tag">{t}</span>)}</div>
         <div className="stars" onClick={e=>e.stopPropagation()}>
           {[1,2,3,4,5].map(i=><svg key={i} viewBox="0 0 24 24" width="16" height="16" className={`star-icon ${i<=c.rating?'filled':''}`} fill={i<=c.rating?'currentColor':'none'} stroke="currentColor" strokeWidth="2" onClick={e=>{e.stopPropagation();onRate(i)}}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>)}
         </div>
@@ -1548,39 +545,29 @@ function CompanyCard({c,onClick,onRate}){
 }
 
 // ═══════════════ DETAIL SHEET ═══════════════
-function DetailSheet({c,onClose,onEdit,onDelete}){
-  const [photos,setPhotos]=useState([]);
-  const [lightbox,setLightbox]=useState(null);
-  useEffect(()=>{(async()=>{const p=await getCompanyPhotos(c.id);setPhotos(p)})()},[c.id]);
-
-  const safeWebsiteURL = (url) => {
-    const cleaned = sanitizeURL(url);
-    if(!cleaned) return null;
-    return cleaned.startsWith('http') ? cleaned : 'https://' + cleaned;
-  };
-
+function DetailSheet({c,onClose,onEdit,onDelete,dbAvailable}){
+  const [photo,setPhoto]=useState(null);
+  useEffect(()=>{setPhoto(null);let mounted=true;(async()=>{try{const p=await dbGetAll('photos');const m=p.find(x=>x.companyId===c.id);if(mounted&&m)setPhoto(m.data)}catch(e){}})();return()=>{mounted=false}},[c.id]);
   return(
     <div className="overlay" onClick={onClose}>
       <div className="sheet" onClick={e=>e.stopPropagation()}>
         <div className="sheet-handle"/>
         <div className="sheet-header"><h2>{c.name}</h2><button className="sheet-close" onClick={onClose}>×</button></div>
         <div className="sheet-body">
-          {photos.length===1&&<img src={photos[0]} className="detail-photo" alt="Business card" onClick={()=>setLightbox(photos[0])} style={{cursor:'pointer'}}/>}
-          {photos.length>1&&<div className="detail-gallery">{photos.map((p,i)=><img key={i} src={p} alt={`Photo ${i+1}`} onClick={()=>setLightbox(p)}/>)}</div>}
-          {lightbox&&<div className="photo-lightbox" onClick={()=>setLightbox(null)}><button className="photo-lightbox-close" onClick={()=>setLightbox(null)}>×</button><img src={lightbox} alt="Full size" onClick={e=>e.stopPropagation()}/></div>}
+          {photo&&<img src={photo} className="detail-photo" alt="Business card"/>}
           {c.contact&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div><div className="detail-label">Contact</div><div className="detail-value">{c.contact}</div></div></div>}
-          {c.phone&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 11.042 11.042 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><div><div className="detail-label">Phone</div><div className="detail-value"><a href={"tel:"+sanitizePhone(c.phone).replace(/[^0-9+]/g,'')}>{c.phone}</a></div></div></div>}
-          {c.email&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><div><div className="detail-label">Email</div><div className="detail-value"><a href={"mailto:"+sanitizeEmail(c.email)}>{c.email}</a></div></div></div>}
-          {c.website&&safeWebsiteURL(c.website)&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><div><div className="detail-label">Website</div><div className="detail-value"><a href={safeWebsiteURL(c.website)} target="_blank" rel="noopener noreferrer">{c.website}</a></div></div></div>}
+          {c.phone&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 11.042 11.042 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><div><div className="detail-label">Phone</div><div className="detail-value"><a href={"tel:"+c.phone.replace(/[^0-9+]/g,'')}>{c.phone}</a></div></div></div>}
+          {c.email&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><div><div className="detail-label">Email</div><div className="detail-value"><a href={"mailto:"+c.email}>{c.email}</a></div></div></div>}
+          {c.website&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><div><div className="detail-label">Website</div><div className="detail-value"><a href={(c.website.startsWith('http')?'':'https://')+c.website} target="_blank" rel="noopener">{c.website}</a></div></div></div>}
           {c.address&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><div><div className="detail-label">Address</div><div className="detail-value">{c.address}</div></div></div>}
           {c.services&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg><div><div className="detail-label">Services</div><div className="detail-value">{c.services}</div></div></div>}
           {c.notes&&<div className="detail-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><div><div className="detail-label">Notes</div><div className="detail-value">{c.notes}</div></div></div>}
-          {(c.tags||[]).length>0&&<div style={{marginTop:8}}><div className="card-tags">{c.tags.map(t=><span key={t} className="tag" style={{fontSize:12,padding:'4px 12px'}}>{t}</span>)}</div></div>}
+          {(c.tags||[]).length>0&&<div style={{marginTop:8}}><div className="card-tags">{c.tags.map((t,i)=><span key={t+i} className="tag" style={{fontSize:12,padding:'3px 10px'}}>{t}</span>)}</div></div>}
           <div className="btn-row" style={{marginTop:16}}>
-            <button className="btn btn-danger" style={{flex:0,padding:'10px 16px'}} onClick={()=>{if(confirm('Delete this company?'))onDelete()}}>Delete</button>
+            {dbAvailable&&<button className="btn btn-danger" style={{flex:0,padding:'10px 16px'}} onClick={()=>onDelete(c.id)}>Delete</button>}
             <div style={{flex:1}}/>
             <button className="btn btn-secondary" onClick={onClose} style={{flex:0,padding:'10px 20px'}}>Close</button>
-            <button className="btn btn-primary" onClick={onEdit} style={{flex:0,padding:'10px 20px'}}>Edit</button>
+            {dbAvailable&&<button className="btn btn-primary" onClick={onEdit} style={{flex:0,padding:'10px 20px'}}>Edit</button>}
           </div>
         </div>
       </div>
@@ -1589,120 +576,55 @@ function DetailSheet({c,onClose,onEdit,onDelete}){
 }
 
 // ═══════════════ EDIT SHEET ═══════════════
-function EditSheet({c,onClose,onSave,industries,companies}){
+function EditSheet({c,onClose,onSave,industries,flash}){
   const [f,setF]=useState({...c,tags:c.tags||[]});
   const [tagIn,setTagIn]=useState('');
-  const [photos,setPhotos]=useState([]);
-  const [newPhotos,setNewPhotos]=useState([]);
-  const [ocrStatus,setOcrStatus]=useState(null); // null | 'scanning' | 'done' | 'error'
-  const [ocrProgress,setOcrProgress]=useState(0);
-  const [duplicates,setDuplicates]=useState([]);
-  const cameraRef=useRef();
-  const uploadRef=useRef();
-  const MAX_PHOTOS=10;
+  const [photoData,setPhotoData]=useState(null);
+  const [existingPhoto,setExistingPhoto]=useState(null);
+  const [saving,setSaving]=useState(false);
+  const fileRef=useRef();
 
   useEffect(()=>{
-    if(c.id){(async()=>{const p=await getCompanyPhotos(c.id);setPhotos(p)})()}
+    if(c.id){(async()=>{try{const p=await dbGetAll('photos');const m=p.find(x=>x.companyId===c.id);if(m)setExistingPhoto(m.data)}catch(e){}})()}
   },[c.id]);
 
   const set=(k,v)=>setF(p=>({...p,[k]:v}));
 
-  const allPhotos = [...photos, ...newPhotos];
-
-  const compressImage=(file)=>{
-    return new Promise((resolve,reject)=>{
-      if(!file.type.startsWith('image/')){reject('Not an image');return;}
-      if(file.size > MAX_PHOTO_SIZE * 5){reject('Photo too large (max 10MB)');return;}
-      const reader=new FileReader();
-      reader.onload=ev=>{
-        const img=new Image();
-        img.onload=()=>{
-          const MAX=800;let w=img.width,h=img.height;
-          if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w*=r;h*=r}
-          const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
-          canvas.getContext('2d').drawImage(img,0,0,w,h);
-          const result=canvas.toDataURL('image/jpeg',0.7);
-          if(result.length>MAX_PHOTO_SIZE){reject('Compressed photo still too large');return;}
-          resolve(result);
-        };
-        img.onerror=()=>reject('Invalid image');
-        img.src=ev.target.result;
+  const handlePhoto=e=>{
+    const file=e.target.files[0];if(!file)return;
+    if(file.size>10*1024*1024){alert('Image must be under 10MB');e.target.value='';return}
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const img=new Image();
+      img.onload=()=>{
+        const MAX=800;let w=img.width,h=img.height;
+        if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w*=r;h*=r}
+        const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        setPhotoData(canvas.toDataURL('image/jpeg',0.7));
       };
-      reader.onerror=()=>reject('Read error');
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const handlePhoto=async(e)=>{
-    const files=Array.from(e.target.files);if(!files.length)return;
-    const remaining=MAX_PHOTOS-allPhotos.length;
-    if(remaining<=0){alert(`Maximum ${MAX_PHOTOS} photos allowed`);return;}
-    const toProcess=files.slice(0,remaining);
-    const results=[];
-    for(const file of toProcess){
-      try{const data=await compressImage(file);results.push(data);}catch(err){alert(String(err));}
-    }
-    if(results.length)setNewPhotos(prev=>[...prev,...results]);
-    e.target.value='';
-  };
-
-  const removePhoto=(index)=>{
-    if(index<photos.length){
-      setPhotos(prev=>prev.filter((_,i)=>i!==index));
-    } else {
-      const newIdx=index-photos.length;
-      setNewPhotos(prev=>prev.filter((_,i)=>i!==newIdx));
-    }
-  };
-
-  const scanPhoto=async(photoData)=>{
-    setOcrStatus('scanning');setOcrProgress(0);setDuplicates([]);
-    try{
-      const text=await extractTextFromImage(photoData,p=>setOcrProgress(Math.round(p*100)));
-      const parsed=parseBusinessCard(text);
-      // Auto-fill only empty fields
-      setF(prev=>{
-        const updated={...prev};
-        if(!updated.name && parsed.name) updated.name=parsed.name;
-        if(!updated.phone && parsed.phone) updated.phone=parsed.phone;
-        if(!updated.email && parsed.email) updated.email=parsed.email;
-        if(!updated.website && parsed.website) updated.website=parsed.website;
-        if(!updated.address && parsed.address) updated.address=parsed.address;
-        if(!updated.services && parsed.services) updated.services=parsed.services;
-        if(!updated.industry && parsed.industry) updated.industry=parsed.industry;
-        if(!updated.notes && parsed.notes) updated.notes=parsed.notes;
-        return updated;
-      });
-      // Check for duplicates
-      if(parsed.name || parsed.phone){
-        const dupes = findDuplicates(parsed, companies||[]);
-        if(dupes.length) setDuplicates(dupes);
-      }
-      setOcrStatus('done');
-      setTimeout(()=>setOcrStatus(null),4000);
-    }catch(err){
-      setOcrStatus('error');
-      setTimeout(()=>setOcrStatus(null),3000);
-    }
+      img.onerror=()=>{flash('Could not read image');};
+      img.src=ev.target.result;
+    };
+    reader.onerror=()=>{flash('Failed to read file')};
+    reader.readAsDataURL(file);
   };
 
   const doSave=async()=>{
-    if(!f.name.trim()){alert('Company name is required');return;}
-    const saved=await dbPut('companies',f);
-    const companyId=f.id||saved;
-    const finalPhotos=[...photos,...newPhotos];
-    if(finalPhotos.length>0||photos.length!==allPhotos.length){
-      await dbPut('photos',{companyId,photos:finalPhotos});
-    }
-    onSave({...f,id:companyId});
+    if(!f.name||!f.name.trim()){flash('Company name is required');return}
+    if(saving)return;
+    setSaving(true);
+    try{
+      const saved=await dbPut('companies',f);
+      const companyId=f.id||saved;
+      if(photoData)await dbPut('photos',{companyId,data:photoData});
+      onSave({...f,id:companyId});
+    }catch(e){
+      flash('Save failed: '+e.message);
+    }finally{setSaving(false)}
   };
 
-  const addTag=()=>{
-    const tag = tagIn.trim().slice(0, 50);
-    if(tag && !f.tags.includes(tag) && f.tags.length < 20){
-      set('tags',[...f.tags,tag]);setTagIn('');
-    }
-  };
+  const addTag=()=>{if(tagIn.trim()&&!f.tags.includes(tagIn.trim())){set('tags',[...f.tags,tagIn.trim()]);setTagIn('')}};
 
   return(
     <div className="overlay" onClick={onClose}>
@@ -1710,349 +632,39 @@ function EditSheet({c,onClose,onSave,industries,companies}){
         <div className="sheet-handle"/>
         <div className="sheet-header"><h2>{c.id?'Edit Company':'New Company'}</h2><button className="sheet-close" onClick={onClose}>×</button></div>
         <div className="sheet-body">
-          <div className="photo-area">
-            <input ref={cameraRef} type="file" accept="image/*" capture="environment" style={{display:'none'}} onChange={handlePhoto}/>
-            <input ref={uploadRef} type="file" accept="image/*" multiple style={{display:'none'}} onChange={handlePhoto}/>
-            {allPhotos.length>0?(
-              <>
-                <div className="photo-gallery">
-                  {allPhotos.map((p,i)=>(
-                    <div key={i} className="photo-thumb-wrap">
-                      <img src={p} className="photo-thumb" alt={`Photo ${i+1}`}/>
-                      <button type="button" className="photo-thumb-remove" onClick={()=>removePhoto(i)}>×</button>
-                    </div>
-                  ))}
-                </div>
-                <div className="photo-count">{allPhotos.length}/{MAX_PHOTOS} photos</div>
-                <div className="photo-buttons">
-                  <button type="button" className="photo-btn" onClick={()=>cameraRef.current.click()} disabled={allPhotos.length>=MAX_PHOTOS}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                    Add Photo
-                  </button>
-                  <button type="button" className="photo-btn" onClick={()=>uploadRef.current.click()} disabled={allPhotos.length>=MAX_PHOTOS}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                    Upload More
-                  </button>
-                </div>
-                {ocrStatus===null&&allPhotos.length>0&&(
-                  <div style={{marginTop:8}}>
-                    <button type="button" className="ocr-btn" onClick={()=>scanPhoto(allPhotos[0])} style={{width:'100%',justifyContent:'center'}}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 3h6v6H2z"/><path d="M16 3h6v6h-6z"/><path d="M2 15h6v6H2z"/><path d="M19 15v3a2 2 0 0 1-2 2h-3"/><path d="M15 15h6"/></svg>
-                      Scan Card — Auto-fill Fields
-                    </button>
-                  </div>
-                )}
-                {ocrStatus==='scanning'&&(
-                  <div className="ocr-bar">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18" style={{flexShrink:0,animation:'spin 1s linear infinite'}}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                    <div style={{flex:1}}>
-                      <div className="ocr-status">Scanning text... {ocrProgress}%</div>
-                      <div className="ocr-progress"><div className="ocr-progress-fill" style={{width:ocrProgress+'%'}}/></div>
-                    </div>
-                  </div>
-                )}
-                {ocrStatus==='done'&&<div className="ocr-bar" style={{borderColor:'var(--green)',background:'rgba(5,150,105,.08)'}}><span style={{color:'var(--green)',fontWeight:600,fontSize:13}}>Scan complete — empty fields auto-filled</span></div>}
-                {ocrStatus==='error'&&<div className="ocr-bar" style={{borderColor:'var(--red)',background:'rgba(220,38,38,.08)'}}><span style={{color:'var(--red)',fontWeight:600,fontSize:13}}>Scan failed — try a clearer photo</span></div>}
-                {duplicates.length>0&&<div className="duplicate-bar">{duplicates.map((d,i)=><div key={i} className="duplicate-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Possible duplicate: <strong>{d.company.name}</strong> ({d.matchType} match, {Math.round(d.score*100)}%)</span></div>)}</div>}
-              </>
+          <div className="photo-area" onClick={()=>fileRef.current&&fileRef.current.click()}>
+            <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{display:'none'}} onChange={handlePhoto}/>
+            {photoData||existingPhoto?(
+              <img src={photoData||existingPhoto} className="photo-preview" alt="Card photo"/>
             ):(
               <>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                <p>Add photos</p>
-                <div className="hint">Business cards, truck signs, ads — up to {MAX_PHOTOS}</div>
-                <div className="photo-buttons">
-                  <button type="button" className="photo-btn" onClick={()=>cameraRef.current.click()}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                    Take Photo
-                  </button>
-                  <button type="button" className="photo-btn" onClick={()=>uploadRef.current.click()}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                    Upload Photos
-                  </button>
-                </div>
+                <p>Tap to take photo or upload</p>
+                <div className="hint">Snap a business card, truck sign, or ad</div>
               </>
             )}
           </div>
 
-          <div className="field"><label>Company Name *</label><input value={f.name} onChange={e=>set('name',e.target.value.slice(0,200))} placeholder="Company name" maxLength={200}/></div>
+          <div className="field"><label>Company Name *</label><input value={f.name} onChange={e=>set('name',e.target.value)} placeholder="Company name"/></div>
           <div className="row2">
-            <div className="field"><label>Phone</label><input value={f.phone} onChange={e=>set('phone',e.target.value.slice(0,30))} placeholder="Phone" type="tel" maxLength={30}/></div>
-            <div className="field"><label>Contact Person</label><input value={f.contact} onChange={e=>set('contact',e.target.value.slice(0,200))} placeholder="Name" maxLength={200}/></div>
+            <div className="field"><label>Phone</label><input value={f.phone} onChange={e=>set('phone',e.target.value)} placeholder="Phone" type="tel"/></div>
+            <div className="field"><label>Contact Person</label><input value={f.contact} onChange={e=>set('contact',e.target.value)} placeholder="Name"/></div>
           </div>
           <div className="row2">
-            <div className="field"><label>Email</label><input value={f.email} onChange={e=>set('email',e.target.value.slice(0,200))} placeholder="Email" type="email" maxLength={200}/></div>
-            <div className="field"><label>Website</label><input value={f.website} onChange={e=>set('website',e.target.value.slice(0,500))} placeholder="www..." maxLength={500}/></div>
+            <div className="field"><label>Email</label><input value={f.email} onChange={e=>set('email',e.target.value)} placeholder="Email" type="email"/></div>
+            <div className="field"><label>Website</label><input value={f.website} onChange={e=>set('website',e.target.value)} placeholder="www..."/></div>
           </div>
-          <div className="field"><label>Industry</label><input list="ind-list" value={f.industry} onChange={e=>set('industry',e.target.value.slice(0,100))} placeholder="Type or select" maxLength={100}/><datalist id="ind-list">{industries.map(i=><option key={i} value={i}/>)}</datalist></div>
-          <div className="field"><label>Address</label><input value={f.address} onChange={e=>set('address',e.target.value.slice(0,500))} placeholder="Full address" maxLength={500}/></div>
-          <div className="field"><label>Services</label><textarea value={f.services} onChange={e=>set('services',e.target.value.slice(0,2000))} placeholder="What they do..." maxLength={2000}/></div>
-          <div className="field"><label>Notes</label><textarea value={f.notes} onChange={e=>set('notes',e.target.value.slice(0,5000))} placeholder="Your personal notes, pricing, etc." maxLength={5000}/></div>
+          <div className="field"><label>Industry</label><input list="ind-list" value={f.industry} onChange={e=>set('industry',e.target.value)} placeholder="Type or select"/><datalist id="ind-list">{industries.map(i=><option key={i} value={i}/>)}</datalist></div>
+          <div className="field"><label>Address</label><input value={f.address} onChange={e=>set('address',e.target.value)} placeholder="Full address"/></div>
+          <div className="field"><label>Services</label><textarea value={f.services} onChange={e=>set('services',e.target.value)} placeholder="What they do..."/></div>
+          <div className="field"><label>Notes</label><textarea value={f.notes} onChange={e=>set('notes',e.target.value)} placeholder="Your personal notes, pricing, etc."/></div>
           <div className="row2">
             <div className="field"><label>Rating</label><div className="stars">{[1,2,3,4,5].map(i=><svg key={i} viewBox="0 0 24 24" width="24" height="24" className={`star-icon ${i<=f.rating?'filled':''}`} fill={i<=f.rating?'currentColor':'none'} stroke="currentColor" strokeWidth="2" onClick={()=>set('rating',i===f.rating?0:i)}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>)}</div></div>
-            <div className="field"><label>Tags ({f.tags.length}/20)</label><div style={{display:'flex',gap:4}}><input value={tagIn} onChange={e=>setTagIn(e.target.value.slice(0,50))} placeholder="Add tag" maxLength={50} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();addTag()}}} style={{flex:1}}/><button className="btn btn-secondary" onClick={addTag} style={{width:'auto',padding:'8px 12px',fontSize:13}}>+</button></div>
-            <div className="card-tags" style={{marginTop:6}}>{f.tags.map(t=><span key={t} className="tag" style={{cursor:'pointer',fontSize:12,padding:'3px 8px'}} onClick={()=>set('tags',f.tags.filter(x=>x!==t))}>{t} ×</span>)}</div></div>
+            <div className="field"><label>Tags</label><div style={{display:'flex',gap:4}}><input value={tagIn} onChange={e=>setTagIn(e.target.value)} placeholder="Add tag" onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();addTag()}}} style={{flex:1}}/><button className="btn btn-secondary" onClick={addTag} style={{width:'auto',padding:'8px 12px',fontSize:13}}>+</button></div>
+            <div className="card-tags" style={{marginTop:6}}>{f.tags.map((t,i)=><span key={t+i} className="tag" style={{cursor:'pointer',fontSize:12,padding:'3px 8px'}} onClick={()=>set('tags',f.tags.filter(x=>x!==t))}>{t} ×</span>)}</div></div>
           </div>
-          <button className="btn btn-primary" onClick={doSave} style={{marginTop:8}}>{c.id?'Save Changes':'Add Company'}</button>
-          <button className="btn btn-secondary" onClick={onClose} style={{marginTop:8}}>Cancel</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════ BATCH SCAN SHEET ═══════════════
-function BatchScanSheet({onClose,companies,onComplete}){
-  const [step,setStep]=useState('upload'); // upload | scanning | results
-  const [photoFiles,setPhotoFiles]=useState([]);
-  const [results,setResults]=useState([]); // [{photo,parsed,duplicates,selected,expanded,status:'new'|'duplicate'|'skip'}]
-  const [scanIdx,setScanIdx]=useState(0);
-  const [scanProgress,setScanProgress]=useState(0);
-  const [saving,setSaving]=useState(false);
-  const cameraRef=useRef();
-  const uploadRef=useRef();
-
-  const compressImage=(file)=>{
-    return new Promise((resolve,reject)=>{
-      if(!file.type.startsWith('image/')){reject('Not an image');return;}
-      if(file.size > MAX_PHOTO_SIZE * 5){reject('Photo too large');return;}
-      const reader=new FileReader();
-      reader.onload=ev=>{
-        const img=new Image();
-        img.onload=()=>{
-          const MAX=800;let w=img.width,h=img.height;
-          if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w*=r;h*=r}
-          const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
-          canvas.getContext('2d').drawImage(img,0,0,w,h);
-          resolve(canvas.toDataURL('image/jpeg',0.7));
-        };
-        img.onerror=()=>reject('Invalid image');
-        img.src=ev.target.result;
-      };
-      reader.onerror=()=>reject('Read error');
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const handlePhotos=async(e)=>{
-    const files=Array.from(e.target.files);if(!files.length)return;
-    const compressed=[];
-    for(const file of files){
-      try{const data=await compressImage(file);compressed.push(data);}catch(err){}
-    }
-    setPhotoFiles(prev=>[...prev,...compressed]);
-    e.target.value='';
-  };
-
-  const removePhoto=(idx)=>setPhotoFiles(prev=>prev.filter((_,i)=>i!==idx));
-
-  const startScan=async()=>{
-    if(!photoFiles.length) return;
-    setStep('scanning');
-    const scanResults=[];
-    for(let i=0;i<photoFiles.length;i++){
-      setScanIdx(i);setScanProgress(0);
-      try{
-        const text=await extractTextFromImage(photoFiles[i],p=>setScanProgress(Math.round(p*100)));
-        const parsed=parseBusinessCard(text);
-        const dupes=findDuplicates(parsed, companies||[]);
-        scanResults.push({
-          photo:photoFiles[i],
-          parsed,
-          duplicates:dupes,
-          selected:true,
-          expanded:false,
-          status:dupes.length>0?'duplicate':'new',
-          edited:{...parsed}
-        });
-      }catch(err){
-        scanResults.push({
-          photo:photoFiles[i],
-          parsed:{},
-          duplicates:[],
-          selected:true,
-          expanded:false,
-          status:'new',
-          edited:{}
-        });
-      }
-    }
-    setResults(scanResults);
-    setStep('results');
-  };
-
-  const toggleSelect=(idx)=>setResults(prev=>prev.map((r,i)=>i===idx?{...r,selected:!r.selected}:r));
-  const toggleExpand=(idx)=>setResults(prev=>prev.map((r,i)=>i===idx?{...r,expanded:!r.expanded}:r));
-  const updateField=(idx,key,val)=>setResults(prev=>prev.map((r,i)=>i===idx?{...r,edited:{...r.edited,[key]:val}}:r));
-  const setStatus=(idx,status)=>setResults(prev=>prev.map((r,i)=>i===idx?{...r,status,selected:status!=='skip'}:r));
-
-  const saveAll=async()=>{
-    setSaving(true);
-    let count=0;
-    for(const r of results){
-      if(!r.selected || r.status==='skip') continue;
-      const data={
-        name:r.edited.name||'',contact:'',phone:r.edited.phone||'',
-        email:r.edited.email||'',website:r.edited.website||'',
-        address:r.edited.address||'',services:r.edited.services||'',
-        industry:r.edited.industry||'',rating:0,
-        notes:r.edited.notes||'',tags:[],createdAt:Date.now()
-      };
-      if(!data.name.trim()) continue;
-      const validated=validateCompany(data);
-      if(!validated) continue;
-
-      if(r.status==='duplicate' && r.duplicates.length>0){
-        // Merge: update existing company with new fields that it's missing
-        const existing=r.duplicates[0].company;
-        const merged={...existing};
-        if(!merged.phone && validated.phone) merged.phone=validated.phone;
-        if(!merged.email && validated.email) merged.email=validated.email;
-        if(!merged.website && validated.website) merged.website=validated.website;
-        if(!merged.address && validated.address) merged.address=validated.address;
-        if(!merged.services && validated.services) merged.services=validated.services;
-        if(!merged.industry && validated.industry) merged.industry=validated.industry;
-        if(validated.notes && !merged.notes?.includes(validated.notes)) merged.notes=(merged.notes?merged.notes+'; ':'')+validated.notes;
-        await dbPut('companies',merged);
-        // Add photo to existing
-        const existPhotos=await getCompanyPhotos(existing.id);
-        await dbPut('photos',{companyId:existing.id,photos:[...existPhotos,r.photo]});
-        count++;
-      } else {
-        // New entry
-        const saved=await dbPut('companies',validated);
-        const companyId=validated.id||saved;
-        await dbPut('photos',{companyId,photos:[r.photo]});
-        count++;
-      }
-    }
-    setSaving(false);
-    onComplete(count);
-  };
-
-  const selectedCount=results.filter(r=>r.selected && r.status!=='skip').length;
-
-  return(
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet batch-sheet" onClick={e=>e.stopPropagation()}>
-        <div className="sheet-handle"/>
-        <div className="sheet-header">
-          <h2>{step==='upload'?'Batch Scan':step==='scanning'?'Scanning...':'Scan Results'}</h2>
-          <button className="sheet-close" onClick={onClose}>×</button>
-        </div>
-        <div className="sheet-body">
-
-          {step==='upload'&&(
-            <>
-              <p style={{fontSize:14,color:'var(--muted)',marginBottom:12}}>Upload photos of different contractors. Each photo will be scanned and create a separate entry.</p>
-              <input ref={cameraRef} type="file" accept="image/*" capture="environment" style={{display:'none'}} onChange={handlePhotos}/>
-              <input ref={uploadRef} type="file" accept="image/*" multiple style={{display:'none'}} onChange={handlePhotos}/>
-
-              {photoFiles.length>0&&(
-                <div className="photo-gallery" style={{marginBottom:12}}>
-                  {photoFiles.map((p,i)=>(
-                    <div key={i} className="photo-thumb-wrap">
-                      <img src={p} className="photo-thumb" alt={`Photo ${i+1}`}/>
-                      <button type="button" className="photo-thumb-remove" onClick={()=>removePhoto(i)}>×</button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="photo-buttons" style={{marginBottom:12}}>
-                <button type="button" className="photo-btn" onClick={()=>cameraRef.current.click()}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                  Take Photo
-                </button>
-                <button type="button" className="photo-btn" onClick={()=>uploadRef.current.click()}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                  Upload Photos
-                </button>
-              </div>
-
-              {photoFiles.length>0&&(
-                <button className="btn btn-primary" onClick={startScan}>
-                  <span style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M2 3h6v6H2z"/><path d="M16 3h6v6h-6z"/><path d="M2 15h6v6H2z"/><path d="M19 15v3a2 2 0 0 1-2 2h-3"/><path d="M15 15h6"/></svg>
-                    Scan {photoFiles.length} Photo{photoFiles.length>1?'s':''}
-                  </span>
-                </button>
-              )}
-            </>
-          )}
-
-          {step==='scanning'&&(
-            <div style={{textAlign:'center',padding:'20px 0'}}>
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent2)" strokeWidth="1.5" style={{animation:'spin 1s linear infinite',marginBottom:12}}>
-                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-              </svg>
-              <div style={{fontSize:16,fontWeight:600,marginBottom:4}}>Scanning photo {scanIdx+1} of {photoFiles.length}</div>
-              <div style={{fontSize:13,color:'var(--muted)',marginBottom:12}}>Extracting text... {scanProgress}%</div>
-              <div className="ocr-progress" style={{maxWidth:300,margin:'0 auto'}}>
-                <div className="ocr-progress-fill" style={{width:scanProgress+'%'}}/>
-              </div>
-            </div>
-          )}
-
-          {step==='results'&&(
-            <>
-              <div style={{fontSize:13,color:'var(--muted)',marginBottom:12}}>
-                Found {results.length} contractor{results.length>1?'s':''} — {selectedCount} selected to save
-              </div>
-
-              {results.map((r,idx)=>(
-                <div key={idx} className={`batch-item ${r.status==='skip'?'batch-skip':''}`}>
-                  <div className="batch-item-header" onClick={()=>toggleExpand(idx)}>
-                    <input type="checkbox" checked={r.selected && r.status!=='skip'} onChange={()=>toggleSelect(idx)} onClick={e=>e.stopPropagation()} style={{width:18,height:18,flexShrink:0}}/>
-                    <img src={r.photo} className="batch-thumb" alt=""/>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontWeight:600,fontSize:14,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{r.edited.name||'Unknown Company'}</div>
-                      <div style={{fontSize:12,color:'var(--muted)'}}>{r.edited.phone||'No phone'}</div>
-                    </div>
-                    {r.status==='duplicate'&&<span className="batch-badge batch-badge-warn">Duplicate</span>}
-                    {r.status==='new'&&<span className="batch-badge batch-badge-new">New</span>}
-                    {r.status==='skip'&&<span className="batch-badge batch-badge-skip">Skip</span>}
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16" style={{flexShrink:0,transform:r.expanded?'rotate(180deg)':'',transition:'transform .15s'}}><polyline points="6 9 12 15 18 9"/></svg>
-                  </div>
-
-                  {r.expanded&&(
-                    <div className="batch-item-body">
-                      {r.duplicates.length>0&&(
-                        <div className="duplicate-bar" style={{marginBottom:8}}>
-                          {r.duplicates.map((d,di)=>(
-                            <div key={di} className="duplicate-item">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                              <span>Matches: <strong>{d.company.name}</strong> ({d.matchType}, {Math.round(d.score*100)}%)</span>
-                            </div>
-                          ))}
-                          <div style={{display:'flex',gap:6,marginTop:6}}>
-                            <button className="batch-action-btn" onClick={()=>setStatus(idx,'duplicate')} style={r.status==='duplicate'?{background:'var(--accent2)',color:'#fff'}:{}}>Merge</button>
-                            <button className="batch-action-btn" onClick={()=>setStatus(idx,'new')} style={r.status==='new'?{background:'var(--accent2)',color:'#fff'}:{}}>Add New</button>
-                            <button className="batch-action-btn" onClick={()=>setStatus(idx,'skip')} style={r.status==='skip'?{background:'var(--red)',color:'#fff'}:{}}>Skip</button>
-                          </div>
-                        </div>
-                      )}
-                      <div className="field"><label>Name</label><input value={r.edited.name||''} onChange={e=>updateField(idx,'name',e.target.value)} placeholder="Company name"/></div>
-                      <div className="row2">
-                        <div className="field"><label>Phone</label><input value={r.edited.phone||''} onChange={e=>updateField(idx,'phone',e.target.value)}/></div>
-                        <div className="field"><label>Email</label><input value={r.edited.email||''} onChange={e=>updateField(idx,'email',e.target.value)}/></div>
-                      </div>
-                      <div className="row2">
-                        <div className="field"><label>Website</label><input value={r.edited.website||''} onChange={e=>updateField(idx,'website',e.target.value)}/></div>
-                        <div className="field"><label>Industry</label><input value={r.edited.industry||''} onChange={e=>updateField(idx,'industry',e.target.value)}/></div>
-                      </div>
-                      <div className="field"><label>Services</label><textarea value={r.edited.services||''} onChange={e=>updateField(idx,'services',e.target.value)} rows={2}/></div>
-                      <div className="field"><label>Notes</label><input value={r.edited.notes||''} onChange={e=>updateField(idx,'notes',e.target.value)}/></div>
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              <button className="btn btn-primary" onClick={saveAll} disabled={saving||selectedCount===0} style={{marginTop:12}}>
-                {saving?'Saving...':`Save ${selectedCount} Contractor${selectedCount>1?'s':''}`}
-              </button>
-              <button className="btn btn-secondary" onClick={()=>{setStep('upload');setResults([]);}} style={{marginTop:8}}>Back</button>
-            </>
-          )}
+          <button className="btn btn-primary" onClick={doSave} disabled={saving} style={{marginTop:8}}>{saving?'Saving...':(c.id?'Save Changes':'Add Company')}</button>
+          <button className="btn btn-secondary" onClick={onClose} disabled={saving} style={{marginTop:8}}>Cancel</button>
         </div>
       </div>
     </div>
@@ -2062,7 +674,10 @@ function BatchScanSheet({onClose,companies,onComplete}){
 // ═══════════════ SERVICE WORKER ═══════════════
 if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+// ═══════════════ RENDER WITH ERROR BOUNDARY ═══════════════
+ReactDOM.createRoot(document.getElementById('root')).render(
+  React.createElement(ErrorBoundary, null, React.createElement(App))
+);
 </script>
 </body>
 </html>
