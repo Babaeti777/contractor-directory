@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1e3a5f">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://apis.google.com https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://people.googleapis.com https://www.googleapis.com https://accounts.google.com https://oauth2.googleapis.com; font-src 'self'; worker-src 'self' blob: https://cdn.jsdelivr.net; frame-src https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://apis.google.com https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://people.googleapis.com https://www.googleapis.com https://accounts.google.com https://oauth2.googleapis.com https://generativelanguage.googleapis.com; font-src 'self'; worker-src 'self' blob: https://cdn.jsdelivr.net; frame-src https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <title>1 Oak Builders — Contractor Directory</title>
@@ -284,6 +284,25 @@ async function extractTextFromImage(imageData,onProgress){
   return result.data.text;
 }
 
+// ═══════════════ Gemini Vision API ═══════════════
+async function extractTextWithGemini(imageData){
+  const apiKey=getGeminiApiKey();
+  if(!apiKey)throw new Error('Gemini API key not configured');
+  const base64=imageData.replace(/^data:image\/\w+;base64,/,'');
+  const mimeMatch=imageData.match(/^data:(image\/\w+);base64,/);
+  const mimeType=mimeMatch?mimeMatch[1]:'image/jpeg';
+  const resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({contents:[{parts:[
+      {inlineData:{mimeType,data:base64}},
+      {text:'Extract all text from this image of a business card, sign, or vehicle. Return ONLY the raw text you see, preserving line breaks. Do not add commentary.'}
+    ]}]})
+  });
+  if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.error?.message||`Gemini API error: ${resp.status}`)}
+  const data=await resp.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+}
+
 // ═══════════════ Business Card Parser ═══════════════
 const INDUSTRY_KEYWORDS={
   'Plumbing':['plumbing','plumber','drain','sewer','water heater','pipe'],
@@ -361,6 +380,8 @@ const INDUSTRY_GROUPS={
 // ═══════════════ GOOGLE CONTACTS ═══════════════
 function getGoogleClientId(){return localStorage.getItem('google_client_id')||''}
 function setGoogleClientId(id){localStorage.setItem('google_client_id',id)}
+function getGeminiApiKey(){return localStorage.getItem('gemini_api_key')||''}
+function setGeminiApiKey(k){localStorage.setItem('gemini_api_key',k)}
 const GOOGLE_SCOPES='https://www.googleapis.com/auth/contacts';
 function getGoogleToken(){try{return JSON.parse(localStorage.getItem('google_token'))}catch(e){return null}}
 function setGoogleToken(t){localStorage.setItem('google_token',JSON.stringify(t))}
@@ -633,6 +654,8 @@ function App(){
   const [googleToken,setGoogleTokenState]=useState(()=>getGoogleToken());
   const [googleClientId,setGoogleClientIdState]=useState(getGoogleClientId);
   const [showClientIdInput,setShowClientIdInput]=useState(false);
+  const [geminiKey,setGeminiKeyState]=useState(getGeminiApiKey);
+  const [showGeminiKeyInput,setShowGeminiKeyInput]=useState(false);
   const [googleSyncing,setGoogleSyncing]=useState(false);
   const [googleSyncProgress,setGoogleSyncProgress]=useState('');
 
@@ -872,6 +895,8 @@ function App(){
             )}
             <div className="menu-item" onClick={()=>setShowClientIdInput(!showClientIdInput)}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Google Client ID {googleClientId?'✓':''}</div>
             {showClientIdInput&&<div style={{padding:'8px 12px'}}><input type="text" value={googleClientId} onChange={e=>{const v=e.target.value;setGoogleClientIdState(v);setGoogleClientId(v)}} placeholder="Paste your Google Client ID" style={{width:'100%',padding:'6px 8px',fontSize:'12px',border:'1px solid var(--border)',borderRadius:'6px',background:'var(--bg)',color:'var(--fg)',boxSizing:'border-box'}}/><div style={{fontSize:'11px',color:'var(--muted)',marginTop:'4px'}}>From Google Cloud Console → OAuth 2.0 Client IDs</div></div>}
+            <div className="menu-item" onClick={()=>setShowGeminiKeyInput(!showGeminiKeyInput)}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>Gemini API Key {geminiKey?'✓':''}</div>
+            {showGeminiKeyInput&&<div style={{padding:'8px 12px'}}><input type="password" value={geminiKey} onChange={e=>{const v=e.target.value;setGeminiKeyState(v);setGeminiApiKey(v)}} placeholder="Paste your Gemini API key" style={{width:'100%',padding:'6px 8px',fontSize:'12px',border:'1px solid var(--border)',borderRadius:'6px',background:'var(--bg)',color:'var(--fg)',boxSizing:'border-box'}}/><div style={{fontSize:'11px',color:'var(--muted)',marginTop:'4px'}}>From Google AI Studio → Get API Key</div></div>}
             <div className="menu-divider"/>
             <div className="menu-item" style={{color:'var(--red)'}} onClick={resetToSeed}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>Reset to Original Data</div>
             <div className="menu-divider"/>
@@ -1026,7 +1051,14 @@ function EditSheet({c,onClose,onSave,industries,flash}){
   const scanPhoto=async(data)=>{
     setOcrStatus('scanning');setOcrProgress(0);
     try{
-      const text=await extractTextFromImage(data,p=>setOcrProgress(Math.round(p*100)));
+      let text;
+      if(getGeminiApiKey()){
+        setOcrProgress(50);
+        text=await extractTextWithGemini(data);
+        setOcrProgress(100);
+      }else{
+        text=await extractTextFromImage(data,p=>setOcrProgress(Math.round(p*100)));
+      }
       const parsed=parseBusinessCard(text);
       setF(prev=>{
         const u={...prev};
@@ -1040,7 +1072,7 @@ function EditSheet({c,onClose,onSave,industries,flash}){
         return u;
       });
       setOcrStatus('done');setTimeout(()=>setOcrStatus(null),4000);
-    }catch(err){setOcrStatus('error');setTimeout(()=>setOcrStatus(null),3000)}
+    }catch(err){setOcrStatus('error');flash(err.message);setTimeout(()=>setOcrStatus(null),3000)}
   };
 
   const doSave=async()=>{
