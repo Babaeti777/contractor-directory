@@ -40,9 +40,10 @@ except ImportError:
 # Configuration
 # ═══════════════════════════════════════════════════════════════════
 
-DEFAULT_FOLDER = r"C:\Users\shaya\OneDrive - Oak builders llc\Oak\Bussiness Cards"
-DEFAULT_EXCEL = os.path.join(DEFAULT_FOLDER, "contractors.xlsx")
-PROCESSED_SUBFOLDER = "processed"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_FOLDER = os.path.join(SCRIPT_DIR, "new")
+DEFAULT_SCANNED = os.path.join(SCRIPT_DIR, "scanned")
+DEFAULT_EXCEL = os.path.join(SCRIPT_DIR, "contractors.xlsx")
 LOG_FILE = "auto_scan.log"
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif", ".webp", ".heic"}
 
@@ -374,37 +375,35 @@ def add_row(ws, fields, photo_filename):
 # Main Processing
 # ═══════════════════════════════════════════════════════════════════
 
-def find_new_images(folder, processed_folder):
-    """Find image files that haven't been processed yet."""
-    processed_names = set()
-    if os.path.exists(processed_folder):
-        processed_names = {f.lower() for f in os.listdir(processed_folder)}
-
+def find_new_images(folder):
+    """Find image files in the folder to process."""
     images = []
     for f in os.listdir(folder):
         if f.lower().startswith("."):
             continue
         ext = Path(f).suffix.lower()
-        if ext in IMAGE_EXTENSIONS and f.lower() not in processed_names:
+        if ext in IMAGE_EXTENSIONS:
             full_path = os.path.join(folder, f)
             if os.path.isfile(full_path):
                 images.append(full_path)
     return sorted(images)
 
 
-def process_folder(folder, excel_path):
+def process_folder(folder, excel_path, scanned_folder=None):
     """Main entry point: scan folder for new photos, OCR them, update Excel."""
-    setup_logging(folder)
+    if scanned_folder is None:
+        scanned_folder = DEFAULT_SCANNED
+    setup_logging(os.path.dirname(os.path.abspath(excel_path)))
     logging.info("=" * 60)
     logging.info("Starting auto-scan run")
-    logging.info(f"Folder: {folder}")
-    logging.info(f"Excel:  {excel_path}")
+    logging.info(f"Scan folder:    {folder}")
+    logging.info(f"Scanned folder: {scanned_folder}")
+    logging.info(f"Excel:          {excel_path}")
 
-    processed_folder = os.path.join(folder, PROCESSED_SUBFOLDER)
-    os.makedirs(processed_folder, exist_ok=True)
+    os.makedirs(scanned_folder, exist_ok=True)
 
     # Find new images
-    new_images = find_new_images(folder, processed_folder)
+    new_images = find_new_images(folder)
     if not new_images:
         logging.info("No new images found. Exiting.")
         return 0
@@ -433,7 +432,7 @@ def process_folder(folder, excel_path):
                 logging.warning(f"  No text detected in {filename}")
                 errors += 1
                 # Still move to processed to avoid re-scanning
-                shutil.move(img_path, os.path.join(processed_folder, filename))
+                shutil.move(img_path, os.path.join(scanned_folder, filename))
                 continue
 
             logging.info(f"  OCR text: {text[:100]}...")
@@ -463,7 +462,7 @@ def process_folder(folder, excel_path):
             logging.info(f"  Added: {fields['name']} | {fields['phone']} | {fields['industry']}")
 
             # Move photo to processed
-            shutil.move(img_path, os.path.join(processed_folder, filename))
+            shutil.move(img_path, os.path.join(scanned_folder, filename))
 
         except Exception as e:
             logging.error(f"  Error processing {filename}: {e}")
@@ -494,7 +493,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--folder", "-f",
         default=DEFAULT_FOLDER,
-        help=f"Folder to scan for photos (default: {DEFAULT_FOLDER})"
+        help=f"Folder to scan for new photos (default: {DEFAULT_FOLDER})"
+    )
+    parser.add_argument(
+        "--scanned", "-s",
+        default=DEFAULT_SCANNED,
+        help=f"Folder to move processed photos to (default: {DEFAULT_SCANNED})"
     )
     parser.add_argument(
         "--excel", "-e",
@@ -503,10 +507,14 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
+    # Ensure folders exist
+    os.makedirs(args.folder, exist_ok=True)
+    os.makedirs(args.scanned, exist_ok=True)
+
     if not os.path.isdir(args.folder):
         print(f"Error: Folder not found: {args.folder}")
         print("Create the folder or specify a different path with --folder")
         sys.exit(1)
 
-    count = process_folder(args.folder, args.excel)
+    count = process_folder(args.folder, args.excel, args.scanned)
     print(f"\nProcessed {count} new contractor(s).")
